@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: 'Poppins',sans-serif;
+}
+.bod {
+    display: grid;
+    height: 100vh;
+    width: 100%;
+    place-items: center;
+  }
+.contain{
+    max-width: 350px;
+    width:100%;
+    padding:25px 35px;
+}
+.contain form .title{
+    text-align: center;
+    font-size: 30px;
+    font-weight: 600;
+    margin: 20px 0 10px 0;
+    position: relative;
+}
+.contain form .title::before{
+    position:absolute;
+    height:4px;
+    width:33px;
+    bottom: -2px;
+    left:0;
+    border-radius: 5px;
+    background:skyblue;
+}
+.contain form .input-box{
+    width: 100%;
+    height: 45px;
+    margin-top: 25px;
+    position: relative;
+}
+.contain form .input-box input{
+    height: 100%;
+    width: 100%;
+    outline:none;
+    font-size: 16px;
+    border: none;
+}
+.contain form .underline:before{
+    position: absolute;
+    content:'';
+    height:2px;
+    width:100%;
+    background: #ccc;
+    left: 0;
+    bottom:0;
+}
+.contain form .underline:after{
+    position:absolute;
+    content:'';
+    background: linear-gradient(to right,#7AE5F5 0%,#C9F6FF 100%);
+    height:2px;
+    width:100%;
+    left:0;
+    bottom:0;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: all 0.3s ease-in;
+}
+.contain form .input-box input:focus ~ .underline:after,
+.contain form .input-box input:valid ~ .underline:after{
+    transform: scaleX(1);
+    transform-origin: left;
+}
+.contain form .input-box input[type="submit"]{
+    font-size: 17px;
+    color: #fff;
+    border-radius: 5px;
+    cursor:pointer;
+    background: linear-gradient(to right,#7AE5F5 0%,#C9F6FF 100%);
+    transition: all 0.3s ease;
+}
+.contain form .input-box input[type="submit"]:hover{
+    letter-spacing: 1px;
+    background: linear-gradient(to left,#7AE5F5 0%,#C9F6FF 100%);
+}
+.contain form .button{
+    margin:40px 0 20px 0;
+}
+.contain .option{
+    font-size: 14px;
+    text-align: center;
+}
+.contain .google a,
+.contain .facebook a{
+    display: block;
+    width:100%;
+    height:45px;
+    font-size: 15px;
+    text-decoration: none;
+    padding-left: 20px;
+    line-height: 45px;
+    border-radius: 5px;
+}
+.contain .google i,
+.contain .facebook i{
+
+    padding-right: 12px;
+    font-size: 20px;
+}
+
+.contain .google a{
+    margin:20px 0px 15px 0px;
+    background: white;
+    border: 1px solid rgba(0,0,0,0.25);
+    color:black;
+}
+.contain .facebook a{
+    margin:20px 0px 15px 0px;
+    background: #3b5998;
+    border: 1px solid rgba(0,0,0,0.25);
+    color:white;
+}
+.contain .crac{
+    font-size: 12px;
+    text-align: center;
+    padding-top: 20px;
+}
+.back-button{
+    display: none;
+}
+@media screen and (max-width: 768px) {
+    .back-button.responsive {
+      display: block;
+      position: fixed;
+      left:50px;
+      top:1.9rem;
+      
+    }
+  }

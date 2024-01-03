@@ -1,0 +1,255 @@
+/* content.css */
+
+.Bg {
+    /* Replace 'background.jpg' with the actual path to your background image */
+    background-image: url('../Assets/Complete.png');
+    /* You can adjust background properties like size, position, and repeat as needed */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    /* Set the height to fill the content */
+    height: 100vh;
+    flex: none;
+    justify-content: center;
+    width: 100%;
+    max-width: 100%;
+    border-radius: inherit;
+    transition: inherit;
+    content: "";
+  }
+  @media screen and (max-width: 540px) {
+    /* Adjust the background properties for smaller screens */
+    .Bg {
+        flex: none;
+    }
+  @media screen and (max-width: 840px) {
+    .Bg{
+      flex: none;
+      height: 550px;
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+  }
+.text{
+    align-items: center;
+    flex-direction: column;
+    padding: 32px 30px 32px;
+    height: auto;
+}
+.tex{
+    flex: none;
+    flex: none;
+    height: 800px;
+    justify-content: center;
+    width: 100%;
+    max-width: 100%;
+}
+img{
+    overflow-clip-margin: content-box;
+    overflow: clip;
+}
+.main{
+  -webkit-font-smoothing: antialiased;
+  -webkit-backface-visibility: hidden;
+  border: 0;
+  box-sizing: border-box;
+  color: #333;
+  font-family: sans-serif;
+  line-height: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-decoration: none;
+  transition: .3s cubic-bezier(.4,.4,0,1);
+  word-spacing: 1px;
+  display: flex;
+  pointer-events: all;
+  position: relative;
+  z-index: 0;
+  align-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.0);
+  flex: none;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  height: auto;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 100%;
+}
+
+.Image{
+  -webkit-font-smoothing: antialiased;
+  -webkit-backface-visibility: hidden;
+  border: 0;
+  box-sizing: border-box;
+  color: #333;
+  font-family: sans-serif;
+  line-height: 1;
+  list-style: none;
+  padding: 0;
+  text-decoration: none;
+  transition: .3s cubic-bezier(.4,.4,0,1);
+  word-spacing: 1px;
+  align-content: center;
+  align-items: center;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  pointer-events: all;
+  position: relative;
+  z-index: 0;
+  height: auto;
+  width: 1312px;
+  box-shadow: none;
+  margin: 0px 0px 20px 0px;
+  max-width: 100%;
+  padding-top: 7rem;
+
+   @media screen and (max-width: 768px) {
+    padding: 4rem 0px 0px 0px; /* Adjust padding for smaller screens */
+    width: 80%; /* Set width to a percentage to make it responsive */
+    height: auto; /* Allow height to adjust based on content */
+  }
+  }
+
+  .ImageWrapper {
+    -webkit-font-smoothing: antialiased;
+    -webkit-backface-visibility: hidden;
+    border: 0;
+    box-sizing: border-box;
+    color: #333;
+    font-family: sans-serif;
+    line-height: 1;
+    list-style: none;
+    text-decoration: none;
+    transition: .3s cubic-bezier(.4,.4,0,1);
+    word-spacing: 1px;
+    display: flex;
+    pointer-events: all;
+    position: relative;
+    z-index: 0;
+    background: rgba(0,0,0,0.0);
+    flex: none;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    height: auto;
+    justify-content: flex-start;
+    width: auto;
+    align-content: center;
+    align-items: center;
+    margin: 0px 0px 0px;
+    padding: 32px 32px 32px;
+    max-width: 100%;
+  }
+  .In-Text {
+    border: 0;
+    box-sizing: border-box;
+    list-style: none;
+    padding: 0;
+    text-decoration: none;
+    transition: .3s cubic-bezier(.4,.4,0,1);
+    word-spacing: 1px;
+    flex-wrap: nowrap;
+    pointer-events: all;
+    position: relative;
+    z-index: 0;
+    align-content: center;
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    color: #ffffff;
+    flex: none;
+    font-family: 'Lato',sans-serif;
+    font-feature-settings: 'palt' 1;
+    font-weight: 900;
+    height: auto;
+    letter-spacing: 0.1em;
+    line-height: 2;
+    margin: 0px 0px 0px 0px;
+    text-align: left;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+    width: 900px;
+    max-width: 100%;
+    justify-content: flex-start;
+    font-size: 0.9rem;
+    text-align: justify;
+  }
+  @media screen and (max-width: 768px) {
+    .In-Text {
+      font-size: 14px;
+      width: 80%;
+      margin-top: 10px;
+      padding: 0 0;
+      justify-content: center;
+      text-align: justify;
+      text-justify: inter-word;
+    }
+  }
+
+/* CSS */
+.button-56 {
+  align-items: center;
+  background-color:skyblue;
+  border: 2px solid #111;
+  border-radius: 8px;
+  box-sizing: border-box;
+  color: #111;
+  cursor: pointer;
+  display: flex;
+  font-family: Inter,sans-serif;
+  font-size: 16px;
+  height: 48px;
+  justify-content: center;
+  line-height: 24px;
+  max-width: 100%;
+  padding: 0 25px;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  top:69px;
+}
+
+.button-56:after {
+  background-color: #111;
+  border-radius: 8px;
+  content: "";
+  display: block;
+  height: 48px;
+  left: 0;
+  width: 100%;
+  position: absolute;
+  top: -2px;
+  transform: translate(8px, 8px);
+  transition: transform .2s ease-out;
+  z-index: -1;
+}
+
+.button-56:hover:after {
+  transform: translate(0, 0);
+}
+
+.button-56:active {
+  background-color: #ffdeda;
+  outline: 0;
+}
+
+.button-56:hover {
+  outline: 0;
+}
+@media screen and (max-width: 768px) {
+  .button-56 {
+    padding: 0 20px;
+    position: absolute;
+    top:100%;
+  }
+}
+

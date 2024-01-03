@@ -1,0 +1,105 @@
+nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: skyblue;
+    padding:0.3px 80px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.06)
+}
+#navbar{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#navbar li{
+    list-style: none;
+    padding: 0 20px;
+    position: relative;
+}
+
+#navbar li a{
+    font-family: 'lato',sans-serif;
+    text-decoration: none;
+    font: size 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    transition:0.3s ease-in-out;
+}
+
+#navbar li a:hover{
+    color:#000
+}
+#navbar li a:hover::after,
+#navbar li a.active::after{
+    content:"";
+    width:30%;
+    height:1px;
+    background:black;
+    position: absolute;
+    bottom:-4px;
+    left:20px;
+}
+#mobile{
+    display: none;
+}
+#mobile i{
+    color:#fff
+}
+.image{
+    transform: scale(0.7);
+    right: 5%;
+    width:300px;
+    height:60px;
+}
+@media screen and (max-width:769px) {
+    nav {
+        display: flex;
+        align-items: center;
+        position: fixed;
+        justify-content: space-between;
+        background-color: skyblue;
+        padding:20px 80px;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.06);
+        z-index:3;
+    }
+    #navbar{
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        position:fixed;
+        top:100px;
+        right:-300px;
+        width: 300px;
+        height:100vh;
+        background-color: black;
+        box-shadow: 0px 40px 60px rgba(0, 0, 0, 0.1);
+        padding: 40px 0 0 10px;
+        transition: 0.3s ease-in-out;
+        z-index: 1;
+    }
+    #navbar.active{
+        right:0px;
+    }
+    #navbar li{
+        margin-bottom:25px;
+    }
+    #navbar li a:hover{
+        color:skyblue;
+    }
+    #mobile{
+        display: block;
+        position: relative;
+        right: 45px;
+    }
+
+    #mobile i{
+        font-size: 24px;
+        cursor:pointer;
+    }
+    .image{
+        transform: scale(0.7);
+        right: 100px;
+    }
+}

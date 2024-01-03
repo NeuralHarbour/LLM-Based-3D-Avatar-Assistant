@@ -1,0 +1,387 @@
+salutations:
+  good_morning:
+    - "Good morning! Rise and shine! How may I assist you today?"
+    - "Morning! The early bird catches the worm. How can I help you?"
+    - "Morning! What brings you here today?"
+    - "Good morning! Wishing you a day filled with positivity. How can I support you?"
+    - "Good morning! Ready to conquer the day. How may I be of service?"
+    - "Top of the morning! Another day, another opportunity. How can I assist you?"
+    - "Good morning! How can I make your day better?"
+
+  good_afternoon:
+    - "Good Afternoon! The day is in full swing. How can I assist you?"
+    - "Afternoon! I hope your day is going swimmingly. How may I help you?"
+    - "Afternoon! It's the prime of the day. Anything on your mind that I can help with?"
+    - "Good Afternoon! Ready to tackle the tasks ahead. How may I be of service?"
+    - "Afternoon! The sun is shining, and so are you. How can I make your day brighter?"
+    - "Good Afternoon! How can I contribute to the rest of your day?"
+    - "Afternoon! How's your day unfolding? Anything I can help you with?"
+
+  good_evening:
+    - "Good evening! As the day winds down, how can I assist you?"
+    - "Evening! I hope you had a productive day. What can I do for you?"
+    - "Good evening! Ready to wrap up the day. How may I be of assistance?"
+    - "Evening! The stars are out. How may I help you shine in your endeavors?"
+    - "Good evening! Anything on your mind as the day concludes?"
+    - "Evening! The night is young, and so are the possibilities. How can I assist you?"
+    - "Good evening! How can I make the end of your day even better?"
+
+  good_night:
+    - "Good night! May your dreams be as sweet as honey."
+    - "Nighty night! Wishing you restful slumber and pleasant dreams."
+    - "Sleep well! If you need anything before drifting off, I'm here."
+    - "Good night! Sending you wishes for a serene and peaceful sleep."
+    - "Sweet dreams! The night is yours, and so is the tranquility."
+    - "Good night! Rest easy and recharge for a new day ahead."
+    - "Night falls, and so do the worries. Sleep tight and dream big!"
+
+greetings:
+  hello:
+    - "Hello there! How can I assist you today?"
+    - "Hi! What brings you to my virtual doorstep?"
+    - "Hey! What can I do for you right now?"
+    - "Hello! Ready to tackle the day together?"
+    - "Hi there! What's going on in your world?"
+    - "Greetings! How can I make your day brighter?"
+    - "Hello! How can I contribute to your positive vibes today?"
+
+  hi:
+    - "Hi there! What's going on in your world?"
+    - "Hello! Ready to tackle the day together?"
+    - "Hey! How can I make your day better?"
+    - "Hi! What brings you to my virtual doorstep?"
+    - "Hello! How can I contribute to your positive vibes today?"
+    - "Hi there! How can I assist you right now?"
+    - "Greetings! What can I do for you at this moment?"
+
+  hey:
+    - "Hey! What's up? How can I help you today?"
+    - "Hi there! Ready to dive into anything you need assistance with."
+    - "Hello! What's going on in your corner of the world?"
+    - "Hey! How can I assist you right now?"
+    - "Hi there! What can I do for you today?"
+    - "Greetings! How can I contribute to your positive vibes today?"
+    - "Hey there! What brings you to my virtual doorstep?"
+
+corrections:
+  - "Oops! It's {time_of_day}, not {greeting}. My bad!"
+  - "My apologies, but it's {time_of_day} now, not {greeting}."
+  - "I think there might be a mix-up. The current time is {time_of_day}."
+  - "Just a heads up, it's {time_of_day}, not {greeting}. Let's get back on track!"
+  - "Sorry, but it seems there's a slight confusion. It's {time_of_day}, not {greeting}."
+  - "Oh no! It's {time_of_day}, not {greeting}. Let's navigate through the right time zone."
+  - "My mistake! It's {time_of_day}, not {greeting}. How can I assist you during this time?"
+
+not_sleep_time:
+  - "It's not time to sleep yet! How can I assist you during this {time_of_day}?"
+  - "Good night! But it's still {time_of_day}. Anything else you need before bedtime?"
+  - "Sleep can wait a bit! What can I do for you right now?"
+  - "I sense the night vibes, but it's not bedtime yet! How can I help you during this {time_of_day}?"
+  - "The stars are out, but it's not sleep time! How may I assist you at this moment?"
+  - "Good night, but the day is still going! How can I support you during this {time_of_day}?"
+  - "Not quite bedtime yet! How can I assist you during this {time_of_day}?"
+
+dynamic_responses:
+  default:
+    - "I'm sorry, I didn't quite catch that. Can you please rephrase?"
+    - "I didn't understand. Could you provide more details?"
+    - "I'm not sure I follow. Can you clarify your request?"
+    - "My apologies, I didn't get that. Can you try expressing it differently?"
+    - "I may be a bit confused. Can you rephrase or provide more information?"
+    - "It seems I missed something. Could you please repeat or elaborate?"
+    - "I'm here to help, but I need a bit more information. Can you provide additional details?"
+  time_questions:
+    - "Did you mean what the time is now ?"
+    - "Did you mean what the current time is ?"
+    - "Time can be relative. Can you provide more context for your time-related question ?"
+weather_condition_responses:
+  rain:
+    light_rain:
+      - Light rain! A stroll with an umbrella could be refreshing.
+      - Enjoy the gentle raindrops with a hot beverage.
+      - Take a peaceful walk in the rain and listen to nature's rhythm.
+      - Capture beautiful raindrop photos in your garden or park.
+      - Try your hand at baking or cooking something delicious indoors.
+
+    moderate_rain:
+      - Moderate rain! Consider a waterproof jacket and boots.
+      - A good time to stay indoors and watch your favorite movie.
+      - Have a cozy indoor picnic with family or friends.
+      - Create art or write creatively with the rain as background music.
+      - Organize a board game session with loved ones.
+
+    heavy_rain:
+      - Heavy rain! Stay indoors and stay safe.
+      - It's pouring! Best to avoid going out if possible.
+      - Relax with some soothing music and a cup of tea indoors.
+      - Experiment with new indoor recipes or baking projects.
+      - Dive into a captivating book or start a movie marathon.
+
+    heavy_intensity_rain:
+      - Heavy intensity rain! Stay indoors and ensure windows are closed.
+      - Prepare for potential flooding and stay updated on weather alerts.
+      - Use this time to organize your indoor space or do some decluttering.
+      - Check on neighbors or family members who might need assistance during heavy rain.
+      - Keep emergency supplies handy in case of power outages or other weather-related issues.
+
+    extreme_rain:
+      - Extreme rain! Safety first—avoid any travel if possible.
+      - Secure loose objects outside and stay away from flood-prone areas.
+      - Charge electronic devices and have a flashlight ready in case of power outages.
+      - Monitor local news or weather channels for updates and instructions.
+      - Consider moving to higher ground if you live in a flood-prone area.
+
+    freezing_rain:
+      - Freezing rain! Be cautious of icy surfaces, especially on roads and walkways.
+      - Stay indoors if possible to avoid slipping on icy paths.
+      - Use ice melt or sand on walkways to prevent accidents.
+      - Keep faucets dripping to prevent pipes from freezing.
+      - Check on elderly neighbors or those who may need assistance during icy conditions.
+
+    light_intensity_rain:
+      - Light intensity rain! Embrace the tranquility of a light drizzle.
+      - Take a relaxing nap to the sound of raindrops.
+      - Use this time for indoor gardening or plant care.
+      - Reflect and journal with the calming ambiance of rain outside.
+      - Enjoy a soothing bath or spa-like self-care indoors.
+
+    shower_rain:
+      - Shower rain! Brief periods of rain—take breaks between the showers.
+      - Use the breaks to take a short walk and enjoy the fresh air.
+      - Play indoor games or do quick workouts during breaks in the rain.
+      - Brew a fresh cup of coffee or tea and savor the moments between showers.
+      - Catch up on short indoor tasks or chores between rain showers.
+
+    heavy_intensity_shower_rain:
+      - Heavy intensity shower rain! Be cautious of sudden downpours.
+      - Stay alert for potential flash flooding in your area.
+      - Have a backup plan for outdoor activities if showers become frequent.
+      - Listen to weather updates for any warnings or changes in the rain pattern.
+      - Double-check that drainage systems around your home are clear to avoid flooding.
+
+    ragged_shower_rain:
+      - Ragged shower rain! Unpredictable rain patterns—stay aware.
+      - Keep an eye on changing weather conditions for safety.
+      - Have essentials ready in case of a sudden increase in rain intensity.
+      - Plan indoor activities that can easily be paused or resumed during intermittent showers.
+      - Consider postponing non-urgent outdoor tasks until the weather stabilizes.
+
+  thunderstorm:
+    thunderstorm_with_light_rain:
+      - Thunderstorm with light rain! Stay indoors and enjoy a good book.
+      - Perfect weather to cozy up inside with some calming music.
+      - Listen to the calming sound of rain and thunder from indoors.
+      - Create a cozy ambiance with candles and blankets indoors.
+      - Practice mindfulness or meditation during the storm.
+
+    thunderstorm_with_heavy_rain:
+      - Thunderstorm with heavy rain! Stay indoors and enjoy a good book.
+      - Do turn off all the electronics.
+      - Embrace the sound of the downpour; it's nature's symphony.
+      - Make a cup of hot cocoa and watch the rain from a cozy spot.
+      - Take this time to organize or declutter your living space.
+
+    thunderstorm_rain:
+      - Enjoy the rhythmic sound of rain tapping on your windows.
+      - Grab a blanket and watch a movie while the storm passes.
+      - Reflect on the beauty of nature's power during a rainstorm.
+      - Use this time to catch up on indoor hobbies or crafts.
+      - Keep a journal and jot down your thoughts amidst the rain's melody.
+
+    light_thunderstorm:
+      - Appreciate the subtle rumblings of a distant thunderstorm.
+      - Read a book while occasionally glancing at the flashes of lightning.
+      - Enjoy a warm drink while listening to the gentle thunder.
+      - Write poetry inspired by the tranquility of a light thunderstorm.
+      - Use the calming atmosphere to practice some light stretching or yoga.
+
+    heavy_thunderstorm:
+      - Stay safe indoors and listen to the booming thunder.
+      - Make a homemade meal while the heavy storm rages outside.
+      - Play board games or do puzzles with family or friends.
+      - Take a nap and enjoy the sound of heavy rain on the roof.
+      - Write a short story inspired by the intensity of the thunderstorm.
+
+    ragged_thunderstorm:
+      - Take caution during this intense thunderstorm.
+      - Ensure all windows and doors are secure.
+      - Reflect on the power of nature during a ragged thunderstorm.
+      - Spend time with loved ones, sharing stories and laughter.
+      - Make sure to have emergency supplies readily available.
+
+    thunderstorm_light_drizzle:
+      - Enjoy the refreshing drizzle amidst occasional thunder.
+      - Open the windows slightly to let in the fresh, rainy air.
+      - Paint or draw while being inspired by the light drizzle.
+      - Make a warm drink and savor it while listening to the rain.
+      - Take a mindful walk under an umbrella and embrace the drizzle.
+
+    thunderstorm_drizzle:
+      - Appreciate the gentle rain during this mild thunderstorm.
+      - Curl up with a good book and listen to the soft patter of raindrops.
+      - Write in a journal while the drizzle creates a serene atmosphere.
+      - Use this time to try a new recipe or bake something delicious.
+      - Reflect on gratitude for the nourishment the rain provides.
+
+    thunderstorm_heavy_drizzle:
+      - Experience the heavier drizzle and occasional thunder.
+      - Watch a movie or series with a comforting bowl of popcorn.
+      - Create a playlist of calming music to accompany the drizzle.
+      - Work on a creative project while enjoying the soothing rain.
+      - Spend time with pets, keeping them comforted during the storm.
+
+    default:
+      - Find comfort in the safety of your home during any thunderstorm.
+      - Read a book, listen to music, or engage in a relaxing activity.
+      - Use the storm as an opportunity for introspection or reflection.
+      - Take this time to unwind and appreciate the natural elements.
+      - Ensure to stay updated with weather alerts and safety precautions.
+
+  drizzle:
+    drizzle_light_intensity:
+      - Enjoy the gentle touch of the drizzle, perfect for a leisurely walk.
+      - Embrace the soft drizzle and take a moment to appreciate nature.
+      - Use this light drizzle as a chance to relax and unwind outdoors.
+      - It's a lovely time to enjoy a warm beverage while feeling the gentle rain.
+      - Take a stroll and let the light drizzle create a serene atmosphere.
+
+    drizzle_heavy_intensity:
+      - Take cover from the heavy drizzle and stay cozy indoors.
+      - It's pouring! Time to curl up with a good book or a favorite movie.
+      - Seek shelter and listen to the sound of the heavy drizzle.
+      - Use this time to catch up on indoor hobbies or creative projects.
+      - Relax and listen to the rhythmic pattern of the heavy drizzle.
+
+    light_intensity_rain:
+      - Enjoy the gentle rain, perfect for a calming outdoor activity.
+      - Take a moment to dance or walk in the refreshing light rain.
+      - It's a great time to appreciate the beauty of a light rain shower.
+      - Use this light rain as an opportunity to connect with nature.
+      - Capture the serene moments of the light rain with a peaceful pause.
+
+    drizzle_rain:
+      - Appreciate the blend of drizzle and rain in this mild shower.
+      - Find solace in the calming rhythm of drizzle mixed with raindrops.
+      - It's a soothing time to enjoy the soft rain and drizzle combo.
+      - Make a warm cup of tea and enjoy it while listening to the rain.
+      - Take a moment to reflect amidst the blend of drizzle and rain.
+
+    drizzle_heavy_intensity_rain:
+      - Seek shelter from this heavy mix of drizzle and rain.
+      - Stay indoors and take comfort in the sound of heavy raindrops.
+      - Use this time to relax and listen to the intensity of the rain.
+      - Create a cozy ambiance indoors while the heavy rain drizzles outside.
+      - Enjoy the symphony of heavy rain mixed with gentle drizzle.
+
+    drizzle_shower_rain:
+      - Embrace the shower-like feel of the drizzle turning into rain.
+      - Take cover from the drizzle shower and enjoy indoor comforts.
+      - It's a good time to indulge in a relaxing indoor activity.
+      - Watch the transition from drizzle to rain while staying dry.
+      - Use this time to plan a cozy evening indoors.
+
+    drizzle_heavy_shower_rain:
+      - Find shelter from the heavy shower of drizzle turning into rain.
+      - Stay cozy indoors while the heavy shower of rain persists.
+      - Reflect on the power of nature during this heavy drizzle shower.
+      - It's a good opportunity to unwind with a comforting activity.
+      - Take this time to relax and enjoy the sound of the heavy shower.
+
+    drizzle_shower:
+      - Enjoy the light shower-like drizzle in the air.
+      - Take a moment to breathe in the fresh air during this drizzle.
+      - Use this time to take a refreshing walk amidst the drizzle.
+      - Embrace the light shower-like drizzle and enjoy the outdoors.
+      - Take cover if needed and enjoy the gentle drizzle.
+
+    default:
+      - Find comfort in the tranquility of the drizzle, indoors or outdoors.
+      - Embrace the calming effect of drizzle and take a moment to relax.
+      - Use this time to appreciate the gentle touch of the drizzle.
+      - Take a break and savor the serene atmosphere of the drizzle.
+      - Stay dry and cozy while enjoying the soothing sound of drizzle.
+
+  wind_responses:
+    high_wind:
+      - It's windy! Secure loose items and wear wind-resistant clothing.
+      - Enjoy kite-flying or wind-surfing if you're feeling adventurous.
+      - Perfect weather for flying a kite at the park.
+      - Have a fun photo shoot with windblown hair and flowing clothes.
+      - Create music by letting the wind play through chimes or instruments.
+
+  sky_condition_responses:
+    clear_sky:
+      - Clear skies! Enjoy the sunshine and outdoor activities.
+      - Perfect day for a picnic or a hike in nature.
+      - Don't forget your sunglasses and sunscreen.
+      - Stargaze at night and try to spot constellations.
+      - Capture stunning sunset or sunrise photos.
+
+  clouds:
+    Default:
+      - Partly cloudy skies! Enjoy outdoor activities with caution.
+      - A great day for a leisurely walk in the park.
+      - Cloudy skies make for dramatic sunsets; keep an eye out!
+      - Embrace the moody ambiance for artistic photography.
+      - Use the diffused light for gardening or outdoor painting.
+    few:
+      - Enjoy the scattered clouds and the intermittent sunshine.
+      - It's a pleasant day with just a few clouds; perfect for outdoor activities.
+      - Take advantage of the sunny breaks between the scattered clouds.
+      - Find a spot to bask in the sunlight peeking through the few clouds.
+      - A great time to enjoy outdoor sports or a picnic under the sporadic clouds.
+
+    scattered:
+      - Embrace the changing sky with scattered clouds; it's a beautiful sight.
+      - Enjoy the shifting patterns of sunlight and shadow under scattered clouds.
+      - Take a moment to appreciate the beauty of the sky's scattered artwork.
+      - It's a good time to take a leisurely walk and admire the scattered clouds.
+      - Use the changing light created by scattered clouds for creative inspiration.
+
+    broken:
+      - Witness the sky's canvas with broken clouds; a blend of sun and shade.
+      - Enjoy the ever-changing scenery under the broken cloud cover.
+      - Find beauty in the mixture of sunlight and gaps between the clouds.
+      - It's a great time for outdoor photography with the broken cloud formations.
+      - Take a break outdoors and revel in the dynamic view of the broken sky.
+
+    overcast:
+      - It's an overcast day! Perfect for indoor activities or cozy reading.
+      - Enjoy the calmness of the muted light under the overcast sky.
+      - Find solace in the peaceful ambiance created by the overcast clouds.
+      - Take this time to relax and unwind indoors amidst the overcast weather.
+      - Consider a movie marathon or catching up on indoor hobbies with the overcast sky outside.
+  haze:
+    - "The haze has settled in, creating a mystical aura in the air."
+    - "The haze shrouds the landscape, giving it an ethereal feel."
+    - "Embrace the tranquility brought by the haze-enveloped surroundings."
+    - "The haze adds an enigmatic touch to the atmosphere, blurring the edges of the scenery."
+    - "In the midst of haze, find beauty in the subtle, softened hues of the surroundings."
+
+general_recommendations:
+  - Stay hydrated regardless of the weather conditions.
+  - Always check the weather forecast before planning outdoor activities.
+  - Dress in layers for variable weather conditions.
+  - Practice self-care routines tailored to the weather changes.
+  - Use the weather as inspiration for creative projects or hobbies.
+temperature_responses:
+  hot:
+    - "It's quite hot today!"
+    - "Looks like it's a scorcher out there!"
+    - "Stay cool, it's really hot!"
+    - "Hot weather today. Don't forget your sunscreen!"
+    - "The temperature is soaring today."
+
+  cold:
+    - "Brrr... It's cold outside!"
+    - "Bundle up, it's chilly!"
+    - "Cold weather today. Dress warmly!"
+    - "Feels chilly, grab a jacket!"
+    - "The temperature has dropped, stay warm!"
+Intros:
+  weather_intro:
+    - "Here is today's weather forecast."
+    - "Let's take a look at today's weather."
+    - "Checking the weather for today."
+    - "Today's forecast is as follows."
+    - "The weather outlook for today."

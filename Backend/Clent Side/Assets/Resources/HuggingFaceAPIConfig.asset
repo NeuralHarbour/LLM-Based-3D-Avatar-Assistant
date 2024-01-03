@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2e4a11424bacd4418fb6c47ff99b12a, type: 3}
+  m_Name: HuggingFaceAPIConfig
+  m_EditorClassIdentifier: 
+  _apiKey: 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
+  _useBackupEndpoints: 1
+  _waitForModel: 1
+  _maxTimeout: 3
+  _taskEndpoints:
+  - taskName: AutomaticSpeechRecognition
+    endpoint: https://api-inference.huggingface.co/models/openai/whisper-tiny
+  - taskName: Conversation
+    endpoint: https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill
+  - taskName: QuestionAnswering
+    endpoint: https://api-inference.huggingface.co/models/deepset/roberta-base-squad2
+  - taskName: SentenceSimilarity
+    endpoint: https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2
+  - taskName: Summarization
+    endpoint: https://api-inference.huggingface.co/models/facebook/bart-large-cnn
+  - taskName: TextClassification
+    endpoint: https://api-inference.huggingface.co/models/distilbert-base-uncased-finetuned-sst-2-english
+  - taskName: TextGeneration
+    endpoint: https://api-inference.huggingface.co/models/gpt2
+  - taskName: TextToImage
+    endpoint: https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5
+  - taskName: Translation
+    endpoint: https://api-inference.huggingface.co/models/t5-base

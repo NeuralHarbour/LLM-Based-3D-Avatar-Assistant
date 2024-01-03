@@ -1,0 +1,1012 @@
+{
+    "intent_data": {
+      "common_examples": [
+        {
+          "text": "hey", 
+          "intent": "greet"        
+        }, 
+        {
+          "text": "allo", 
+          "intent": "greet"        
+        },
+        {
+          "text": "ahoy", 
+          "intent": "greet"        
+        }, 
+        {
+          "text": "howdy", 
+          "intent": "greet"
+        }, 
+        {
+          "text": "hey there",
+          "intent": "greet"
+        }, 
+        {
+          "text": "hello", 
+          "intent": "greet"
+        }, 
+        {
+          "text": "hi", 
+          "intent": "greet"
+        },
+        {
+          "text": "good morning",
+          "intent": "greet"
+        },
+        {
+          "text": "good evening",
+          "intent": "greet"
+        },
+        {
+          "text": "good afternoon", 
+          "intent": "greet"
+        }, 
+        {
+          "text": "nice to meet you", 
+          "intent": "greet"
+        }, 
+        {
+          "text": "kind regards",
+          "intent": "greet"
+        },
+        {
+          "text": "all the best",
+          "intent": "greet"
+        },
+        {
+          "text": "yo",
+          "intent": "greet"
+        },
+        {
+          "text": "heya",
+          "intent": "greet"
+        },
+        {
+          "text": "whats up",
+          "intent": "greet"
+        },
+        {
+          "text": "its good to see you",
+          "intent": "greet"
+        },
+        {
+          "text": "it's a pleasure to meet you",
+          "intent": "greet"
+        },
+        {
+          "text": "hi man",
+          "intent": "greet"
+        },
+        {
+          "text": "long time no see",
+          "intent": "greet"
+        },     
+        {
+          "text": "Hey Man",
+          "intent": "greet"
+        },
+        {
+          "text": "hi there", 
+          "intent": "greet"        
+        },
+        {
+          "text": "greetings", 
+          "intent": "greet"        
+        }, 
+        {
+          "text": "Ay Up", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Hello,it's a pleasure to meet you", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Merry Christmas", 
+          "intent": "greet"        
+        }, 
+        {
+          "text": "Happy Holidays", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Welcome Home", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Hello Everyone", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Hello Nice To Meet You", 
+          "intent": "greet"        
+        },
+        {
+          "text": "I've been looking forward to meeting you", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Welcome Abroad", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Oh hello. Sorry, I didn't expect to see you!", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Seasons greetings to you, too..", 
+          "intent": "greet"        
+        },
+        {
+          "text": "warm greetings to you all", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Greetings, friend", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Greetings, Stephen", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Good morning, Tom", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Hi, Monica. Nice to see you", 
+          "intent": "greet"        
+        },
+        {
+          "text": "To whom it may concern", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Hey friend", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Roll Tide", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Good morning! I hope you're having a great day.", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Evening! Any exciting plans for tonight?", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Afternoon! How's everything on your end?", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Happy Holidays! May this season be filled with happiness and good cheer.", 
+          "intent": "greet"        
+        },
+        {
+          "text": "happy birthday", 
+          "intent": "greet"        
+        },
+        {
+          "text": "wishing you a Merry Christmas filled with love, laughter, and good company", 
+          "intent": "greet"        
+        },
+        {
+          "text": "happy birthday! May this year be the best one yet, filled with exciting surprises.", 
+          "intent": "greet"        
+        },
+        {
+          "text": "Dear Dr. Johnson:", 
+          "intent": "greet"        
+        },
+        {
+          "text": "have you ever visited the United States? If not, would you like to visit this country?",
+          "intent": "question"
+        },
+        {
+          "text": "how have you been", 
+          "intent": "question"
+        },
+        {
+          "text": "how are things", 
+          "intent": "question"
+        },
+        {
+          "text": "how do you do",
+          "intent": "question"
+        },
+        {
+          "text": "how is it going",
+          "intent": "question"
+        },
+        {
+          "text": "how's life",
+          "intent": "question"
+        },
+        {
+          "text": "what is your country's relationship with the United States these days?",
+          "intent": "question"
+        },
+        {
+          "text": "who do you think was the worst president in American history? Why?",
+          "intent": "question"
+        },
+        {
+          "text": "when did Europeans first come to the Americas? Who lived there before the Europeans came? What has happened to the native people in the Americas?",
+          "intent": "question"
+        },
+        {
+          "text": "if not, would you like to visit this country?",
+          "intent": "question"
+        },
+        {
+            "text": "what was that about",
+            "intent": "question"
+        },
+        {
+            "text": "how do you stop being an alcoholic?",
+            "intent": "question"
+        },
+        {
+            "text": "should there be punishments for using drugs?",
+            "intent": "question"
+        },
+        {
+            "text": "at what age should it be legal to drink and smoke?",
+            "intent": "question"
+        },
+        {
+            "text": "is there anyone who makes you do your homework?",
+            "intent": "question"
+        },
+        {
+            "text": "would you usually do your homework at the last minute?",
+            "intent": "question"
+        },
+        {
+            "text": "where do boarding schools students do their homework?",
+            "intent": "question"
+        },
+        {
+            "text": "do you like your job? Why or why not?",
+            "intent": "question"
+        },
+        {
+            "text": "how many hours a week do you work?",
+            "intent": "question"
+        },
+        {
+            "text": "what is the time now ?",
+            "intent": "question"
+        },
+        {
+            "text": "what is today's date",
+            "intent": "question"
+        },
+        {
+            "text": "What is tomorrow's date",
+            "intent": "question"
+        },
+        {
+            "text": "What is your name",
+            "intent": "question"
+        },
+        {
+            "text": "What would you do if you were told you had one month to live?",
+            "intent": "question"
+        },
+        {
+            "text": "Do you know any vegetarians?",
+            "intent": "question"
+        },
+        {
+            "text": "Would you marry a vegetarian if it meant you could not cook meat at home?",
+            "intent": "question"
+        },
+        {
+            "text": "When was the last time you danced?",
+            "intent": "question"
+        },
+        {
+            "text": "When was the last time you felt really happy?",
+            "intent": "question"
+        },
+        {
+            "text": "When was the last time you took a day off?",
+            "intent": "question"
+        },
+        {
+          "text": "Is that a boat",
+          "intent": "question"
+        },
+        {
+          "text": "Isn't that great",
+          "intent": "question"
+        },
+        {
+          "text": "Can i do it in such a way",
+          "intent": "question"
+        },
+        {
+          "text": "How can i do it",
+          "intent": "question"
+        },
+        {
+          "text": "Aren't You the one",
+          "intent": "question"
+        },
+        {
+          "text": "Shall I ask you something",
+          "intent": "question"
+        },
+        {
+          "text": "Shall i tell you this",
+          "intent": "question"
+        },
+        {
+          "text": "What's a video game",
+          "intent": "question"
+        },
+        {
+          "text": "Hello,What's your name",
+          "intent": "question"
+        },
+        {
+          "text": "Can you tell me about OS",
+          "intent": "question"
+        },
+        {
+          "text": "Hey What's up",
+          "intent": "question"
+        },
+        {
+          "text": "Hey What's that",
+          "intent": "question"
+        },
+        {
+          "text": "How am i supposed to do that",
+          "intent": "question"
+        },
+        {
+          "text": "Are You all right",
+          "intent": "question"
+        },
+        {
+          "text": "What",
+          "intent": "question"
+        },
+        {
+          "text": "When",
+          "intent": "question"
+        },
+        {
+          "text": "Why",
+          "intent": "question"
+        },
+        {
+          "text": "how",
+          "intent": "question"
+        },
+        {
+          "text": "Where",
+          "intent": "question"
+        },
+        {
+          "text": "Who",
+          "intent": "question"
+        },
+        {
+          "text": "Why not",
+          "intent": "question"
+        },
+        {
+          "text": "bye", 
+          "intent": "goodbye"
+        }, 
+        {
+          "text": "goodbye", 
+          "intent": "goodbye"
+        }, 
+        {
+          "text": "good bye", 
+          "intent": "goodbye"
+        },
+        {
+          "text": "stop", 
+          "intent": "goodbye"
+        }, 
+        {
+          "text": "end", 
+          "intent": "goodbye"
+        },
+        {
+          "text": "farewell",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Bye bye",
+          "intent": "goodbye"
+        },
+        {
+          "text": "have a good one",
+          "intent": "goodbye"
+        },
+        {
+          "text": "have a good day",
+          "intent": "goodbye"
+        },
+        {
+          "text": "good night",
+          "intent": "goodbye"
+        },
+        {
+          "text": "I'll see you then",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Have a great rest of your day!",
+          "intent": "goodbye"
+        },
+        {
+          "text": "I've got to get going",
+          "intent": "goodbye"
+        },
+        {
+          "text": "so long",
+          "intent": "goodbye"
+        },
+        {
+          "text": "speak to you then",
+          "intent": "goodbye"
+        },
+        {
+          "text": "see you around",
+          "intent": "goodbye"
+        },
+        {
+          "text": "see you later",
+          "intent": "goodbye"
+        },
+        {
+          "text": "see ya",
+          "intent": "goodbye"
+        },
+        {
+          "text": "I'm Heading Off",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Nice Chatting With You",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Good Seeing You",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Keep in touch",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Have a nice weekend",
+          "intent": "goodbye"
+        },
+        {
+          "text": "I must be going",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Peace Out",
+          "intent": "goodbye"
+        },
+        {
+          "text": "I gotta hit the road",
+          "intent": "goodbye"
+        },
+        {
+          "text": "I gotta take off",
+          "intent": "goodbye"
+        },
+        {
+          "text": "It was nice seeing you",
+          "intent": "goodbye"
+        },
+        {
+          "text": "I'm off",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Until then",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Hasta la vista",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Take it easy",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Take Care",
+          "intent": "goodbye"
+        },
+        {
+          "text": "later",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Farewell my friend",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Until we meet again, goodbye.",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Goodbye for now!",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Stay in touch. Goodbye!",
+          "intent": "goodbye"
+        },
+        {
+          "text": "If you have any further questions, feel free to reach out. Goodbye for now.",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Wishing you a great day ahead. Goodbye!",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Farewell until we meet again.",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Goodbye, and rock on!",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Wishing you all the best. Goodbye!",
+          "intent": "goodbye"
+        },
+        {
+          "text": "wishing you a fond farewell.",
+          "intent": "goodbye"
+        },
+        {
+          "text": "wishing you a farewell filled with happiness.",
+          "intent": "goodbye"
+        },
+        {
+          "text": "as we close this chapter, goodbye!",
+          "intent": "goodbye"
+        },
+        {
+          "text": "It was a pleasure working with you. Bye.",
+          "intent": "goodbye"
+        },
+        {
+          "text": "Bye with a smile! Have a great day.",
+          "intent": "goodbye"
+        },
+        {
+          "text": "See you later, and take care!",
+          "intent": "goodbye"
+        },
+        {
+          "text": "got to run now. See you later!",
+          "intent": "goodbye"
+        },
+        {
+          "text": "thanks",
+          "intent": "Thank"
+        },
+        {
+          "text": "i am so grateful",
+          "intent": "Thank"
+        },
+        {
+          "text": "i appreciate it",
+          "intent": "Thank"
+        },
+        {
+          "text": "i couldn't have done it without you",
+          "intent": "Thank"
+        },
+        {
+          "text": "i owe you one",
+          "intent": "Thank"
+        },
+        {
+          "text": "that's so kind of you.",
+          "intent": "Thank"
+        },
+        {
+          "text": "much Appreciated",
+          "intent": "Thank"
+        },
+        {
+          "text": "many thanks",
+          "intent": "Thank"
+        },
+        {
+          "text": "thanks in advance",
+          "intent": "Thank"
+        },
+        {
+          "text": "thank you",
+          "intent": "Thank"
+        },
+        {
+          "text": "thanks to you",
+          "intent": "Thank"
+        },
+        {
+          "text": "thank you so much",
+          "intent": "Thank"
+        },
+        {
+          "text": "thank you so much",
+          "intent": "Thank"
+        },
+        {
+            "text": "you are a lifesaver",
+            "intent": "Thank"
+        },
+        {
+          "text": "thank you for the help",
+          "intent": "Thank"
+        },
+        {
+          "text": "many Thanks",
+          "intent": "Thank"
+        },
+        {
+          "text": "thank you kindly",
+          "intent": "Thank"
+        },
+        {
+          "text": "With gratitude",
+          "intent": "Thank"
+        },
+        {
+          "text": "my sincerest thanks",
+          "intent": "Thank"
+        },
+        {
+          "text": "my warmest thanks",
+          "intent": "Thank"
+        },
+        {
+          "text": "you made my day",
+          "intent": "Thank"
+        },
+        {
+          "text": "thank you for the opportunity",
+          "intent": "Thank"
+        },
+        {
+          "text": "you made my day",
+          "intent": "Thank"
+        },
+        {
+          "text": "thank you for welcoming us into your home",
+          "intent": "Thank"
+        },
+        {
+          "text": "thank you for considering me for this position",
+          "intent": "Thank"
+        },
+        {
+          "text": "thank you for being part of our joyous day",
+          "intent": "Thank"
+        },
+        {
+          "text": "we couldn't thank you enough for looking out for our child.",
+          "intent": "Thank"
+        },
+        {
+          "text": "your mentorship is invaluable",
+          "intent": "Thank"
+        },
+        {
+          "text": "it was nice meeting you in person. I appreciate your time",
+          "intent": "Thank"
+        },
+        {
+          "text": "thanks for the awesome referral",
+          "intent": "Thank"
+        },
+        {
+          "text": "thank you for being there",
+          "intent": "Thank"
+        },
+        {
+          "text": "thank you for the help",
+          "intent": "Thank"
+        },
+        {
+          "text": "thanks a million",
+          "intent": "Thank"
+        },
+        {
+          "text": "i am obliged",
+          "intent": "Thank"
+        },
+        {
+          "text": "I sincerely appreciate your help",
+          "intent": "Thank"
+        },
+        {
+          "text": "please accept my deepest thanks",
+          "intent": "Thank"
+        },
+        {
+          "text": "thanks for the awesome referral",
+          "intent": "Thank"
+        },
+        {
+          "text": "i appreciate your hard work and dedication. Thank you for everything.",
+          "intent": "Thank"
+        },
+        {
+          "text": "i wanted to express my sincere gratitude for your generosity",
+          "intent": "Thank"
+        },
+        {
+          "text": "i can't thank you enough for your kindness and understanding.",
+          "intent": "Thank"
+        },
+        {
+          "text": "Many thanks for your time and effort; it hasn't gone unnoticed",
+          "intent": "Thank"
+        },
+        {
+          "text": "thank you for the wishes",
+          "intent": "Thank"
+        },
+        {
+          "text": "thanks for the wish",
+          "intent": "Thank"
+        },
+        {
+          "text": "your kindness has made a significant impact on my life. Thank you for being so generous",
+          "intent": "Thank"
+        },
+        {
+          "text": "A heartfelt thank you for the warm welcome and hospitality.",
+          "intent": "Thank"
+        },
+        {
+          "text": "I am forever grateful for your support today",
+          "intent": "Thank"
+        },
+        {
+          "text": "You are royalty when it comes to research! Thank you!",
+          "intent": "Thank"
+        },
+        {
+          "text": "Thank you for donating to our organization",
+          "intent": "Thank"
+        },
+        {
+          "text": "Thank you for thinking of me. I will cherish your gift always",
+          "intent": "Thank"
+        },
+        {
+          "text": "I am very grateful for your generous gift",
+          "intent": "Thank"
+        },
+        {
+          "text": "I don't understand",
+          "intent": "fallback"
+        },
+        {
+            "text": "I am not sure",
+            "intent": "fallback"
+        },
+        {
+          "text": "yes",
+          "intent": "fallback"
+        
+        },
+        {
+            "text": "no",
+            "intent": "fallback"
+          
+        },
+        {
+            "text": "phone",
+            "intent": "fallback"
+          
+        },
+        {
+          "text": "text",
+          "intent": "fallback"
+        
+        },
+        {
+            "text": "fallback",
+            "intent": "fallback"
+          
+        },
+        {
+            "text": "intent",
+            "intent": "fallback"
+          
+        },
+        {
+          "text": "wave",
+          "intent": "fallback"
+        },
+        {
+          "text": "intense",
+          "intent": "fallback" 
+        },
+        {
+          "text": "type",
+          "intent": "fallback" 
+        },
+        {
+          "text": "safe",
+          "intent": "fallback" 
+        },
+        {
+          "text": "great",
+          "intent": "fallback" 
+        },
+        {
+          "text": "check",
+          "intent": "fallback" 
+        },
+        {
+          "text": "This is a check",
+          "intent": "fallback" 
+        },
+        {
+          "text": "checking",
+          "intent": "fallback" 
+        },
+        {
+          "text": "this is a dummy",
+          "intent": "fallback" 
+        },
+        {
+          "text": "dummy context",
+          "intent": "fallback" 
+        },
+        {
+          "text": "almost done",
+          "intent": "fallback" 
+        },
+        {
+          "text": "loading",
+          "intent": "fallback" 
+        },
+        {
+          "text": "USA",
+          "intent": "fallback" 
+        },
+        {
+          "text": "Well, that is new!",
+          "intent": "fallback" 
+        },
+        {
+          "text": "mango",
+          "intent": "fallback" 
+        },
+        {
+          "text": "fruit",
+          "intent": "fallback" 
+        },
+        {
+          "text": "database",
+          "intent": "fallback" 
+        },
+        {
+          "text": "Oh! You finally arrived!",
+          "intent": "fallback" 
+        },
+        {
+          "text": "banana",
+          "intent": "fallback" 
+        },
+        {
+          "text": "home",
+          "intent": "fallback" 
+        },
+        {
+          "text": "music",
+          "intent": "fallback" 
+        },
+        {
+          "text": "this is music",
+          "intent": "fallback" 
+        },
+        {
+          "text": "this is not music",
+          "intent": "fallback" 
+        },
+        {
+          "text": "its a studio",
+          "intent": "fallback" 
+        },
+        {
+          "text": "please rephrase that",
+          "intent": "fallback" 
+        },
+        {
+          "text": "the battle ended",
+          "intent": "fallback" 
+        },
+        {
+          "text": "battle",
+          "intent": "fallback" 
+        },
+        {
+          "text": "the battle went well",
+          "intent": "fallback" 
+        },
+        {
+          "text": "dont fall",
+          "intent": "fallback" 
+        },
+        {
+          "text": "delete",
+          "intent": "fallback" 
+        },
+        {
+          "text": "lets go",
+          "intent": "fallback" 
+        },
+        {
+          "text": "the battle ended",
+          "intent": "fallback" 
+        },
+        {
+          "text": "we win",
+          "intent": "fallback" 
+        },
+        {
+          "text": "halloween",
+          "intent": "fallback" 
+        },
+        {
+          "text": "xd",
+          "intent": "fallback" 
+        },
+        {
+          "text": "lol",
+          "intent": "fallback" 
+        },
+        {
+          "text": "lel",
+          "intent": "fallback" 
+        },
+        {
+          "text": "face",
+          "intent": "fallback" 
+        },
+        {
+          "text": "Yay! I finally passed",
+          "intent": "fallback"
+        },
+        {
+          "text": "NN",
+          "intent": "fallback"
+        },
+        {
+          "text": "happy",
+          "intent": "fallback"
+        },
+        {
+          "text": "sad",
+          "intent": "fallback"
+        }
+      ]
+    }
+  }

@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: hexagon loop
+  m_Shader: {fileID: 4800000, guid: 20b2aae9898a4e143a1a0bffc15be196, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 5
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Distort:
+        m_Texture: {fileID: 2800000, guid: 5e4f6c742198de946bf635de88b713e0, type: 3}
+        m_Scale: {x: 6, y: 3}
+        m_Offset: {x: -193.41144, y: -64.47312}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: 8f5ad9b40d0576745b7630c888b8b322, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskTex:
+        m_Texture: {fileID: 2800000, guid: 8e85abaccbab5e44586bf2730338f5c9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AlphaM: 10
+    - _CullMode: 2
+    - _DistortScrollX: -3
+    - _DistortScrollY: -1
+    - _DistortX: 0.10714285
+    - _DistortY: 0.10714286
+    - _DstBlend: 10
+    - _ScaleX: 1
+    - _ScaleY: 1
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []

@@ -1,0 +1,248 @@
+@import url('https://fonts.googleapis.com/css2?family=Righteous&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300&display=swap');
+
+.sd{
+    align-content: center;
+    align-items: center;
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    max-width: 100%;
+    position: relative;
+}
+section{
+    border: 0;
+    box-sizing: border-box;
+    line-height: 1;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-decoration: none;
+}
+p { 
+    border: 0; 
+    box-sizing: border-box; 
+    color: #333; 
+    font-family: sans-serif; 
+    line-height: 1; 
+    list-style: none; 
+    margin: 0; 
+    padding: 0; 
+    text-decoration: none; 
+    transition: .3s cubic-bezier(.4,.4,0,1); 
+    word-spacing: 1px;
+} 
+
+.sd[sec]{
+    align-content: center;
+    align-items: center;
+    flex: none;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    height: auto;
+    justify-content: flex-start;
+    padding:96px 0px 96px 0px;
+    width: 100%;
+    max-width: 100%;
+}
+
+.sd .InnerContain{
+    align-content: center;
+    align-items: center;
+    flex: none;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    height: auto;
+    justify-content: flex-start;
+    margin:0px 24px 0px;
+    padding:0px 0px 0px;
+    width:960px;
+    max-width: calc(100% - 48px);
+}
+.sd .InnerContain2{
+    align-content: flex-start; 
+    align-items: flex-start; 
+    background: rgba(0,0,0,0.0); 
+    flex: none; 
+    flex-direction: column; 
+    flex-wrap: nowrap; 
+    height: auto; 
+    justify-content: center; 
+    margin: 0px 0px 32px 0px; 
+    width: 960px; 
+    max-width: 100%;
+}
+.sd .heading{
+    color: white;
+    font-family: 'Noto Sans JP',sans-serif;
+    font-size: 64px;
+    font-weight: 700;
+    height:auto;
+    line-height: 1.2;
+    position: relative;
+    text-align: center;
+    justify-content: center;
+    width: auto;
+    max-width: 100%;
+
+}
+
+.sd .paragr{
+    color: white;
+    font-family: 'Noto Sans JP',sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    height: auto;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    width: auto;
+    max-width: 100%;
+    justify-content: center;
+    top:15px;
+}
+.boxes {
+    display: flex;
+    justify-content: space-between; /* Adjust this property as needed */
+  }
+.container{
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px);
+    background-color: rgba(255,255,255);
+    border:1px solid rgba(255,255,255,0.125);
+    padding:38px;
+    filter:drop-shadow(0 30px 10px rgba(0,0,0,0.125));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin:30px;
+}
+.wrapper{
+    width:100%;
+    height: 100%;
+}
+.banner{
+    background-image: url(https://placehold.co/400);
+    background-position: center;
+    background-size: cover;
+    height: 200px;
+    width:250px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.255);
+    margin-bottom: 30px;
+}
+h1{
+    font-family: 'Righteous',sans-serif;
+    color: rgba(0,0,0,0.98);
+    text-transform: uppercase;
+    font-size: 1.2rem;
+}
+.txt{
+    color: black;
+    font-family: 'Lato',sans-serif;
+    text-align: center;
+    font-size: 0.4rem;
+    line-height: 150%;
+    letter-spacing: 2px;
+    padding:30px 0px 30px 0px;
+    text-transform: uppercase;
+}
+.txt2{
+    color: white;
+    font-family: 'Lato',sans-serif;
+    font-weight: 400;
+    text-align: center;
+    font-size: 1 rem;
+    line-height: 150%;
+    letter-spacing: 2px;
+    right: -2px;
+}
+.buttonwrapper{
+    margin-top:18px;
+}
+.btn{
+    border: none;
+    padding: 12px 24px;
+    border-radius: 24px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    cursor: pointer;
+}
+.btn+.btn{
+    margin-left: 10px;
+}
+.outline{
+    background: transparent;
+    color:rgba(0,0,0,0.9);
+    border: 1px solid rgba(0,0,0,0.6);
+    transition:all .3 ease;
+}
+
+.outline:hover{
+    transform: scale(1.125);
+    color: skyblue;
+    border-color: skyblue;
+    transition: all .3s ease;  
+  }
+  .fill {
+    background: skyblue;
+    color: white;
+    filter: drop-shadow(0);
+    font-weight: bold;
+    transition: all .3s ease; 
+  }
+  
+  .fill:hover{
+    transform: scale(1.125);  
+    border-color: rgba(255, 255, 255, 0.9);
+    filter: drop-shadow(0 10px 5px rgba(0,0,0,0.125));
+    transition: all .3s ease;    
+  }
+  .icon{
+    margin-right: 40px;
+    font-size: 20px;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    right: -20px;
+  }
+@media screen and (max-width:840px){
+    .sd[sec]{
+        padding:64px 0px 64px 0px;
+    }
+    .sd .InnerContain{
+        margin:0px 24px 0px;
+        max-width:calc(100%-48px);
+    }
+    .sd .heading{
+        font-size: 36px;
+    }
+    .sd .para{
+        padding: 0px;
+        font-size: 10px;
+    }
+}
+@media screen and (max-width:840px) {
+    .boxes{
+        display: flex;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+    .txt{
+        font-size: 0.6rem;
+    }
+    .txt2{
+        font-size: 1rem;
+        text-align: left;
+    }
+}
+@media screen and (max-width:1140px){
+    .sd.InnerContain{
+        margin: 0px 32px 0px;
+        max-width:calc(100% - 64px);
+    }
+}

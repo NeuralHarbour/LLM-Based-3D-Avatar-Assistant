@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 424589517, guid: 960ad68eba6cdf2488afe2930e0b9592, type: 3}
+  m_Name: TTSSettings
+  m_EditorClassIdentifier: 
+  data:
+    exportFlagsDict:
+      keys:
+      - Eng_custom05 Q22
+      values:
+      - android: 2
+        windows_x86: 0
+        windows_x64: 0
+        linux_x86: 1
+        linux_x64: 1
+        ps4: 2
+        ps5: 2
+        xsx: 2
+        nswitch: 2
+        ios: 2
+        osx: 2
+    loggingLevel: 0
