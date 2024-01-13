@@ -3,7 +3,6 @@ import websockets
 import speech_recognition as sr
 import whisper
 import os
-model = whisper.load_model("base")
 
 async def receive_audio_stream(websocket, path):
     global model
@@ -17,12 +16,9 @@ async def receive_audio_stream(websocket, path):
 
             audio_data = b""
             audio_data += data
-
-            # Save received audio data as a WAV file
             with open("received_audio.wav", "wb") as wav_file:
                 wav_file.write(audio_data)
 
-            # load audio and pad/trim it to fit 30 seconds
             audio = whisper.load_audio("received_audio.wav")
             audio = whisper.pad_or_trim(audio)
 
@@ -72,6 +68,8 @@ async def recognize_speech(file_path, websocket, detected_language):
             print("Error during speech recognition:", e)
 
 if __name__ == "__main__":
+    model = whisper.load_model("base")
+
     start_server = websockets.serve(receive_audio_stream, '0.0.0.0', 8888)
 
     asyncio.get_event_loop().run_until_complete(start_server)

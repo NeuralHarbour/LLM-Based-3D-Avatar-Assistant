@@ -18,6 +18,7 @@ public class spch : MonoBehaviour
     private bool startsWithTime = false;
     private bool weatherreq = false;
     private bool delayStarted = false;
+    private bool receivedQuestion = false;
 
     private Animator animator;
 
@@ -191,7 +192,6 @@ public class spch : MonoBehaviour
             }
             if (!string.IsNullOrEmpty(currentEmotion))
             {
-                // Use the currentEmotion variable here as needed
                 Debug.Log("Current emotion in Update(): " + currentEmotion);
 
                 switch (currentEmotion)
@@ -215,6 +215,12 @@ public class spch : MonoBehaviour
 
                 // Reset the currentEmotion variable after using it
                 currentEmotion = "";
+            }
+            if (receivedQuestion)
+            {
+                playquestionanimation();
+
+                receivedQuestion = false;
             }
 
         }
@@ -246,6 +252,16 @@ public class spch : MonoBehaviour
 
         shouldSpeak = true; // Set the flag to indicate that speech should be executed
         instance.ReceiveMessage(msg);
+
+        bool isQuestion = msg.EndsWith("?");
+
+        if (isQuestion)
+        {
+            Debug.Log("Recieved a Question");
+            receivedQuestion = true;
+        }
+
+
         if (HandleServerBusy(message))
         {
             OnServerBusy?.Invoke();
@@ -295,14 +311,13 @@ public class spch : MonoBehaviour
     {
         animator.SetTrigger("DefaultExp");
     }
+
     private IEnumerator ReturnToNeutralAfterDelay()
     {
         yield return new WaitForSeconds(2.0f);
         Debug.Log("Returning to neutral animation");
         animator.SetTrigger("DefaultExp");
     }
-
-
     public void GreetCheck(string message)
     {
         string[] greetings = { "hello", "hi", "hey", "greetings" };
@@ -467,6 +482,11 @@ public class spch : MonoBehaviour
     private void playgreeting()
     {
         animator.SetTrigger("IsWaving");
+        StartCoroutine("StopgreetAnimation");
+    }
+    private void playquestionanimation()
+    {
+        animator.SetTrigger("Concern");
         StartCoroutine("StopgreetAnimation");
     }
     IEnumerator StopgreetAnimation()

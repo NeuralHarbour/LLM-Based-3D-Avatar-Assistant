@@ -1,8 +1,9 @@
 {
   "ExpandedNodes": [
     "",
+    "\\lang_modules",
     "\\PresetResponses"
   ],
-  "SelectedNode": "\\server.py",
+  "SelectedNode": "\\lang_modules\\en_module.py",
   "PreviewInSolutionExplorer": false
 }

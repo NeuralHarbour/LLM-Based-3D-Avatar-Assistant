@@ -1,0 +1,12 @@
+{
+  "name": "net.mikinya.unity-voicevox-bridge",
+  "displayName": "Unity VOICEVOX Bridge",
+  "version": "0.2.1",
+  "unity": "2021.3",
+  "description": "Library for using the VOICEVOX Engine to easily read text in Unity.",
+  "license": "MIT",
+  "gitDependencies": {},
+  "author": {
+    "name": "Mikito Yoshiya"
+  }
+}

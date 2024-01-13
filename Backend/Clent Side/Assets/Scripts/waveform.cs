@@ -15,6 +15,7 @@ using WebSocketSharp;
 [RequireComponent(typeof(AudioSource))]
 public class waveform : MonoBehaviour
 {
+    Integrity_Loader IL;
     WsClient wx;
     Wavcon wv;
     Emitter e;
@@ -84,6 +85,13 @@ public class waveform : MonoBehaviour
     public ParticleSystem Surroundparticles;
     private bool haschangedoutfit = false;
 
+    bool ended = false;
+    bool hasExecuted = false;
+
+    private Spchinstance instance;
+
+    public string language = "";
+    bool endFlagValue;
 
     // Start is called before the first frame update
     void Start()
@@ -92,6 +100,18 @@ public class waveform : MonoBehaviour
         wx = GameObject.FindGameObjectWithTag("Middleware").GetComponent<WsClient>();
         e = GameObject.FindGameObjectWithTag("Middleware").GetComponent<Emitter>();
         speech = GameObject.FindGameObjectWithTag("character").GetComponent<spch>();
+        instance = GameObject.FindGameObjectWithTag("Speech").GetComponent<Spchinstance>();
+        IL = GetComponent<Integrity_Loader>();
+
+        if (IL != null)
+        {
+            Debug.Log("LOADER FOUND");
+        }
+        else
+        {
+            Debug.Log("LOADER NOT FOUND");
+        }
+
         if (speech == null)
         {
             Debug.Log("spch script not found on the GameObject with tag 'character'. Make sure the tag and script are set up correctly.");
@@ -229,7 +249,54 @@ public class waveform : MonoBehaviour
     }
 
 
+    List<string> ReadMessagesFromFile(string filePath)
+    {
+        List<string> messages = new List<string>();
 
+        try
+        {
+            // Read all lines from the file
+            string[] lines = File.ReadAllLines(filePath);
+            messages.AddRange(lines);
+        }
+        catch (IOException e)
+        {
+            Debug.LogError("Error reading file: " + e.Message);
+        }
+
+        return messages;
+    }
+
+    // Function to select a random message from the list
+    string SelectRandomMessage(List<string> messages)
+    {
+        if (messages.Count == 0)
+        {
+            Debug.LogError("No messages found.");
+            return string.Empty;
+        }
+
+        int randomIndex = UnityEngine.Random.Range(0, messages.Count); // Specify UnityEngine.Random
+        return messages[randomIndex];
+    }
+    private string GetTimeOfDay()
+    {
+        DateTime currentTime = DateTime.Now;
+        int hour = currentTime.Hour;
+
+        if (hour >= 5 && hour < 12)
+        {
+            return "morning";
+        }
+        else if (hour >= 12 && hour < 18)
+        {
+            return "afternoon";
+        }
+        else
+        {
+            return "evening";
+        }
+    }
 
     // Update is called once per frame
     void Update()
@@ -241,6 +308,43 @@ public class waveform : MonoBehaviour
         GetAmplitude();
         if (isWakeWordDetected)
         {
+            if (ended && !hasExecuted)
+            {
+                hasExecuted = true;
+
+                if (language == "en")
+                {
+                    string basePath = "Assets/Messages/EN/";
+                    string timeOfDay = GetTimeOfDay();
+                    Debug.Log("Time of Day" + timeOfDay);
+                    string filePath = basePath + "Intro_" + timeOfDay + "_msg.txt";
+                    List<string> messages = ReadMessagesFromFile(filePath);
+                    string selectedMessage = SelectRandomMessage(messages);
+
+                    if (!string.IsNullOrEmpty(selectedMessage))
+                    {
+                        instance.ReceiveMessage(selectedMessage);
+                    }
+                }
+                else if (language == "ja")
+                {
+                    string basePath = "Assets/Messages/JP/";
+                    string timeOfDay = GetTimeOfDay();
+                    Debug.Log("Time of Day" + timeOfDay);
+                    string filePath = basePath + "Intro_jp_" + timeOfDay + "_msg.txt";
+                    List<string> messages = ReadMessagesFromFile(filePath);
+                    string selectedMessage = SelectRandomMessage(messages);
+
+                    if (!string.IsNullOrEmpty(selectedMessage))
+                    {
+                        instance.ReceiveMessage(selectedMessage);
+                    }
+                }
+                else
+                {
+                    language = "en";
+                }
+            }
             e.showEmission();
             if (characters.Length > 0)
             {
@@ -269,6 +373,7 @@ public class waveform : MonoBehaviour
                 {
                     Entryparticles.Stop();
                     Surroundparticles.Stop();
+                    StartCoroutine(PlayBowAfterDelay());
                 }
             }
             if (Input.GetKeyDown(pushToTalkKey) && !isCooldown)
@@ -343,14 +448,17 @@ public class waveform : MonoBehaviour
                 character.SetActive(false);
             }
             speech.StopVisualEffectAtAnimationEnd();
-            if (Input.GetKeyDown(pushToTalkKey))
+            if(IL.End_Flag)
             {
-                Debug.Log("PUSHED BEFORE WAKEWORD");
-                StartRecording();
-            }
-            if (Input.GetKeyUp(pushToTalkKey))
-            {
-                StopRecording();
+                if (Input.GetKeyDown(pushToTalkKey))
+                {
+                    Debug.Log("PUSHED BEFORE WAKEWORD");
+                    StartRecording();
+                }
+                if (Input.GetKeyUp(pushToTalkKey))
+                {
+                    StopRecording();
+                }
             }
         }
         IEnumerator StartLoopedSoundWithDelay(float delayDuration)
@@ -379,6 +487,16 @@ public class waveform : MonoBehaviour
             StopCoroutine("PlayLoopedSound");
             loop.Stop();
         }
+    }
+    IEnumerator PlayBowAfterDelay()
+    {
+        yield return new WaitForSeconds(1f);
+        ended = true;
+        anim.Play("Bow");
+    }
+    void submethod()
+    {
+        Debug.Log("ENDED");
     }
     void GetSpectrumAudioSource()
     {
@@ -576,8 +694,6 @@ public class waveform : MonoBehaviour
                 string pattern = @"\[([^\[\]]*?)\]$";
 
                 Match match = Regex.Match(receivedText, pattern);
-
-                string language = "";
                 string textToSend = receivedText;
 
                 if (match.Success)
@@ -587,7 +703,7 @@ public class waveform : MonoBehaviour
                 }
                 Debug.Log("ASR Response: " + receivedText);
                 Debug.Log("LANGAUGE: " + language);
-                if (receivedText == "start" || receivedText == "起きる" || receivedText == "开始" || receivedText == "hola amigo" || receivedText == "nначинать")
+                if (receivedText == "start" || receivedText == "こんにちは" || receivedText == "开始" || receivedText == "hola amigo" || receivedText == "nначинать")
                 {
                     Debug.Log("WakeWord Detected");
                     isWakeWordDetected = true;

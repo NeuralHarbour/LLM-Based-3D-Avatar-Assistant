@@ -1,9 +1,11 @@
 using UnityEngine;
 using WebSocketSharp;
+using System.Collections;
+using System.Net;
+using UnityEngine.Networking;
 
 public class WsClient : MonoBehaviour
 {
-    // Define an event for notifying other scripts when the server is busy
     public delegate void ServerBusyEventHandler();
     public static event ServerBusyEventHandler OnServerBusy;
 
@@ -13,17 +15,94 @@ public class WsClient : MonoBehaviour
     WebSocket ws;
     private string input;
 
+    private const int maxRetryAttempts = 3;
+    private int retryCount = 0;
+
+    private bool isCheckingConnection = false;
+    private bool isConnecting = false;
+
+    [System.Serializable]
+    public class CountryData
+    {
+        public string ip;
+        public string country;
+    }
+
     private void Start()
     {
         Debug.Log("Client Started");
-        ws = new WebSocket("ws://localhost:8080");
-        ws.OnOpen += (sender, e) =>
+        if (Application.internetReachability != NetworkReachability.NotReachable)
         {
-            Debug.Log("WebSocket connection opened to " + ((WebSocket)sender).Url);
-        };
-        ws.Connect();
-        ws.OnMessage += HandleMessageReceived; // Set the callback function for message reception
+            StartCoroutine("DetectCountry");
+            StartWebSocketConnection();
+            StartCoroutine(CheckConnectionStatusRoutine());
+        }
+        else
+        {
+            Debug.LogWarning("No active internet connection. Switching to offline mode.");
+            StartCoroutine(AutoConnectRoutine());
+        }
+    }
 
+    IEnumerator DetectCountry()
+    {
+        UnityWebRequest request = UnityWebRequest.Get("https://api.country.is");
+        request.chunkedTransfer = false;
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
+        {
+            Debug.Log(request.error);
+        }
+        else
+        {
+            if (request.isDone)
+            {
+                string jsonResponse = request.downloadHandler.text.Trim();
+                CountryData countryData = JsonUtility.FromJson<CountryData>(jsonResponse);
+                string country = countryData.country;
+                string ipAddress = countryData.ip;
+
+                Debug.Log("Detected Country : " + country);
+                Debug.Log("IP Address: " + ipAddress);
+
+            }
+        }
+    }
+
+    private IEnumerator AutoConnectRoutine()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(5f);
+
+            if (Application.internetReachability != NetworkReachability.NotReachable)
+            {
+                Debug.Log("Internet connection detected. Starting WebSocket connection.");
+                StartWebSocketConnection();
+                StartCoroutine(RetryConnectionRoutine());
+                yield break;
+            }
+            else
+            {
+                Debug.LogWarning("No active internet connection. Retrying in 5 seconds...");
+            }
+        }
+    }
+
+    private IEnumerator RetryConnectionRoutine()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(10f);
+
+            if (!isConnecting && (ws == null || ws.ReadyState != WebSocketState.Open))
+            {
+                Debug.LogWarning("Attempting to reconnect...");
+
+                StartWebSocketConnection();
+            }
+        }
     }
 
     private void HandleMessageReceived(object sender, MessageEventArgs e)
@@ -38,15 +117,87 @@ public class WsClient : MonoBehaviour
         if (messageFromServer == "Sorry I am Busy")
         {
             Debug.Log("Server is busy: ");
+            OnServerBusy?.Invoke();
         }
     }
 
-    private void Update()
+    private void HandleError(object sender, ErrorEventArgs e)
     {
-        if (ws == null)
+        Debug.LogError("WebSocket error: " + e.Message);
+
+        if (e.Message.Contains("closed"))
         {
-            return;
+            Debug.LogWarning("WebSocket connection closed unexpectedly. Attempting to reconnect...");
+
+            StartWebSocketConnection();
         }
+    }
+
+    private IEnumerator CheckConnectionStatusRoutine()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(10f);
+
+            if (!isCheckingConnection)
+            {
+                isCheckingConnection = true;
+                CheckInternetConnection();
+                isCheckingConnection = false;
+            }
+        }
+    }
+
+    private void CheckInternetConnection()
+    {
+        if (Application.internetReachability == NetworkReachability.NotReachable)
+        {
+            Debug.LogWarning("No active internet connection.");
+
+            if (!isConnecting && retryCount < maxRetryAttempts)
+            {
+                retryCount++;
+                Debug.LogWarning($"Retrying connection attempt {retryCount}...");
+                StartWebSocketConnection();
+            }
+            else
+            {
+                Debug.LogWarning($"Exceeded maximum retry attempts ({maxRetryAttempts}). Switching to offline mode.");
+            }
+        }
+        else
+        {
+            if (ws == null || ws.ReadyState != WebSocketState.Open)
+            {
+                retryCount = 0;
+                Debug.Log("Back Online");
+                StartWebSocketConnection();
+            }
+        }
+    }
+
+    private void StartWebSocketConnection()
+    {
+        isConnecting = true;
+
+        if (ws != null)
+        {
+            ws.OnError -= HandleError; // Unsubscribe from the previous WebSocket error event
+            ws.Close();
+        }
+
+        ws = new WebSocket("ws://localhost:8080");
+
+        ws.OnOpen += (sender, e) =>
+        {
+            Debug.Log("WebSocket connection opened to " + ((WebSocket)sender).Url);
+            isConnecting = false;
+        };
+
+        ws.OnMessage += HandleMessageReceived;
+        ws.OnError += HandleError; // Subscribe to the WebSocket error event
+
+        ws.Connect();
     }
 
     public void SendInputToServer(string message)

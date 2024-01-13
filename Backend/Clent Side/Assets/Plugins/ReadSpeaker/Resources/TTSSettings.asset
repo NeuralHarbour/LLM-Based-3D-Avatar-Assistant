@@ -16,12 +16,24 @@ MonoBehaviour:
     exportFlagsDict:
       keys:
       - Eng_custom05 Q22
+      - Hikari Q22
       values:
       - android: 2
         windows_x86: 0
         windows_x64: 0
         linux_x86: 1
         linux_x64: 1
+        ps4: 2
+        ps5: 2
+        xsx: 2
+        nswitch: 2
+        ios: 2
+        osx: 2
+      - android: 2
+        windows_x86: 0
+        windows_x64: 0
+        linux_x86: 0
+        linux_x64: 0
         ps4: 2
         ps5: 2
         xsx: 2

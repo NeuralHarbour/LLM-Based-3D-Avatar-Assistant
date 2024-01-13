@@ -88,9 +88,10 @@ async def process_japanese_message(message, websocket):
             time_response = f"時刻は {current_time} です。"
             await websocket.send(time_response)
             continue
-        else:
-            response = random.choice(messages['dynamic_responses']['デフォルト'])
-            await websocket.send(response)
+    '''
+    response = random.choice(messages['dynamic_responses']['デフォルト'])
+    await websocket.send(response)
+    '''
     #********************************************#
 
 
