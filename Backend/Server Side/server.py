@@ -40,8 +40,9 @@ import en_module
 
 
 ############### MAIN #######################
-async def on_message(websocket):
-
+async def on_message(websocket,received_message=None):
+    if received_message:
+        message = received_message
     async for message in websocket:
         print(f"Data received: {message}")
         
@@ -56,9 +57,13 @@ async def on_message(websocket):
         else:
             print("Language tag not found or invalid format")
 
-        if language == '[en]':
-            await en_module.process_en_message(message, websocket)
-            continue
+        words  = message.split()
+        if language == '[en]' or language == '[te]':
+            if len(words) >=7:
+                await websocket.send("I can't process this message")
+            else:
+                await en_module.process_en_message(message, websocket,callback = handle_received_message)
+                continue
 
         elif language == '[jp]':
             print("Switching To Japanese Server")
@@ -81,6 +86,10 @@ async def on_message(websocket):
 
         else:
             print("Unsupported language")
+
+async def handle_received_message(websocket, received_message):
+    print("Received message from process_en_message:", received_message)
+    await on_message(websocket, received_message)
 
 async def main():
     server = await websockets.serve(lambda ws, path: on_message(ws), "localhost", 8080)

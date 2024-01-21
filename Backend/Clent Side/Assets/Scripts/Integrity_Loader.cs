@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
@@ -8,10 +8,16 @@ public class Integrity_Loader : MonoBehaviour
 {
     [SerializeField] Image CircleImg;
     [SerializeField] TextMeshProUGUI txtProgress;
-    [SerializeField] TextMeshProUGUI LoadText;
+    [SerializeField] Text LoadText;
 
     [SerializeField][Range(0, 1)] float progress = 0f;
     [SerializeField] float fadeOutTime = 1f;
+
+    WsClient ws;
+
+    [SerializeField] Font japaneseFont;
+    [SerializeField] Font russianFont;
+    [SerializeField] Font defaultFont;
 
     public bool End_Flag = false;
     string[] assetPaths = new string[]
@@ -29,6 +35,7 @@ public class Integrity_Loader : MonoBehaviour
 
     void Start()
     {
+        ws = GameObject.FindGameObjectWithTag("Middleware").GetComponent<WsClient>();
         CircleImg.fillAmount = 0f;
         txtProgress.text = "0";
         CircleImg.gameObject.SetActive(true);
@@ -40,11 +47,24 @@ public class Integrity_Loader : MonoBehaviour
 
     IEnumerator CheckInternetAndLoadAssets()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(3f);
 
         if (Application.internetReachability != NetworkReachability.NotReachable)
         {
-            LoadText.text = "Checking Internet Connection";
+            Debug.Log("Country : " + ws.country);
+            if(ws.country == "JP")
+            {
+                LoadText.font = japaneseFont;
+                LoadText.fontStyle = FontStyle.Normal;
+            }
+            else if(ws.country == "RU")
+            {
+                LoadText.font = russianFont;
+            }
+            else
+            {
+                LoadText.font = defaultFont;
+            }
             Debug.Log("Internet connection available. Loading assets...");
             // Set initial progress to 5%
             CircleImg.fillAmount = 0.05f;
@@ -53,7 +73,6 @@ public class Integrity_Loader : MonoBehaviour
         }
         else
         {
-            LoadText.text = "Checking Internet Connection";
             Debug.LogError("No internet connection. Handle accordingly.");
             // Set initial progress to 5%
             CircleImg.fillAmount = 0.05f;
@@ -76,7 +95,21 @@ public class Integrity_Loader : MonoBehaviour
         // Start from 5% progress
         float baseProgress = 0.05f;
         progress = baseProgress;
-        LoadText.text = "Loading Assets";
+        if (ws.country == "JP")
+        {
+            LoadText.text = "アセットのロード";
+            LoadText.fontSize = 50;
+        }
+        else if(ws.country == "RU")
+        {
+            LoadText.text = "Загрузка ресурсов";
+            LoadText.fontSize = 60;
+        }
+        else
+        {
+            LoadText.text = "Loading Assets";
+            LoadText.fontSize = 36;
+        }
         foreach (string folderPath in assetPaths)
         {
             string[] files = Directory.GetFiles(folderPath);
@@ -109,7 +142,19 @@ public class Integrity_Loader : MonoBehaviour
         progress = 1f;
         CircleImg.fillAmount = progress;
         txtProgress.text = "100";
-        LoadText.text = "Done";
+        if (ws.country == "JP")
+        {
+            LoadText.text = "終わり";
+            LoadText.fontSize = 50;
+        }
+        else if(ws.country == "RU")
+        {
+            LoadText.text = "готово";
+        }
+        else
+        {
+            LoadText.text = "Done";
+        }
 
         yield return new WaitForSeconds(fadeOutTime);
         End_Flag = true;
@@ -144,7 +189,19 @@ public class Integrity_Loader : MonoBehaviour
 
     IEnumerator DummyIntegrityCheck(float startingProgress)
     {
-        LoadText.text = "Verifying Files";
+        if (ws.country == "JP")
+        {
+            LoadText.text = "ファイルの検証";
+            LoadText.fontSize = 50;
+        }
+        else if(ws.country == "RU")
+        {
+            LoadText.text = "Проверка файлов";
+        }
+        else
+        {
+            LoadText.text = "Verifying Files";
+        }
         // Simulate a dummy integrity check
         float dummyCheckDuration = 2f;
         float elapsedTime = 0f;
@@ -167,10 +224,22 @@ public class Integrity_Loader : MonoBehaviour
         yield return new WaitForSeconds(3f);
 
     }
-
+    
     IEnumerator AdditionalUpdateCheck(float startingProgress)
     {
-        LoadText.text = "Checking For Updates";
+        if (ws.country == "JP")
+        {
+            LoadText.text = "アップデートの確認";
+            LoadText.fontSize = 50;
+        }
+        else if(ws.country == "RU")
+        {
+            LoadText.text = "Проверка обновлений";
+        }
+        else
+        {
+            LoadText.text = "Checking For Updates";
+        }
         // Simulate an additional update check
         float updateCheckDuration = 2f;
         float elapsedTime = 0f;
@@ -196,7 +265,19 @@ public class Integrity_Loader : MonoBehaviour
     }
     IEnumerator CleanUp(float startingProgress)
     {
-        LoadText.text = "Getting Things Ready";
+        if (ws.country == "JP")
+        {
+            LoadText.text = "準備を整える";
+            LoadText.fontSize = 50;
+        }
+        else if(ws.country == "RU")
+        {
+            LoadText.text = "Подготовка к запуску";
+        }
+        else
+        {
+            LoadText.text = "Getting Things Ready";
+        }
         float CleanUpDuration = 2f;
         float elapsedTime = 0f;
 

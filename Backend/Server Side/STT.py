@@ -61,7 +61,7 @@ async def recognize_speech(file_path, websocket, detected_language):
             await websocket.send(text_with_lang)
 
         except sr.UnknownValueError:
-            error_message = "Please Say Again"
+            error_message = "please say again"
             print(error_message)
             await websocket.send(error_message)
         except sr.RequestError as e:

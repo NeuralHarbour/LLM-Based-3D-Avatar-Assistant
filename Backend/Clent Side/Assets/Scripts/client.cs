@@ -21,6 +21,8 @@ public class WsClient : MonoBehaviour
     private bool isCheckingConnection = false;
     private bool isConnecting = false;
 
+    public string country;
+
     [System.Serializable]
     public class CountryData
     {
@@ -60,10 +62,8 @@ public class WsClient : MonoBehaviour
             {
                 string jsonResponse = request.downloadHandler.text.Trim();
                 CountryData countryData = JsonUtility.FromJson<CountryData>(jsonResponse);
-                string country = countryData.country;
+                country = countryData.country;
                 string ipAddress = countryData.ip;
-
-                Debug.Log("Detected Country : " + country);
                 Debug.Log("IP Address: " + ipAddress);
 
             }

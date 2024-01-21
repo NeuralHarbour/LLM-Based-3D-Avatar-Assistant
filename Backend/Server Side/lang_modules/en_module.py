@@ -17,6 +17,7 @@
 
 import asyncio
 from inspect import signature
+from multiprocessing import process
 import websockets
 import random
 import yaml
@@ -38,7 +39,7 @@ from langchain.memory import ChatMessageHistory
 import warnings
 import re
 from weather import main_stuff
-from spot import stream, pause_and_play, resume_play, stop
+#from spot import stream, pause_and_play, resume_play, stop
 from datetime import timedelta
 import time
 from nltk.tokenize import word_tokenize
@@ -48,12 +49,15 @@ from nltk.tag import pos_tag
 from langdetect import detect
 import sys
 
+import cohere
+from cohere.responses.classify import Example
 #######################################################################
 
 
 yes_no_question_words = ["do","will","would","could","have","did","should","has","Did","Do","Will","Would","Could","Have","Should","Has","have", "was", "were", "might", "must","shall","Are you","is it","can you"]
 normal_question_words = ["what","who","where","when","why","how","Can you,","What","Who","Where","When","Why","How","Can you"]
 
+co = cohere.Client('jgVbzAZZjadMZW82BWMn50IiUfcDu3yivXlsHOLy')
 API_KEY = open('PALM_api.txt', 'r').read()
 llm = GooglePalm(google_api_key=API_KEY)
 llm.temperature = 0.3
@@ -63,6 +67,10 @@ last_user_message = None
 common_keywords = None
 prompt_spam = None
 last_three_user_message = None
+conversation_state = None
+x = None
+previous_conversation_state = None
+received_message = None
 
 ############## GLOBAL BOOLEAN ###################
 
@@ -86,8 +94,8 @@ thank_flag = False
 weather_flag = False
 is_spamming = False
 long_message = False
+state_changed = False
 long_no_message = False
-
 #################################################
 
 prompt = ChatPromptTemplate.from_messages(
@@ -105,6 +113,14 @@ loaded_model = joblib.load('intent.pkl')
 
 
 ########### DECLARE FUNCTIONS HERE ##############
+async def get_intent(inputs, examples):
+    response = co.classify(
+      inputs=inputs,
+      examples=examples,
+    )
+    predicted_intent = response[0].predictions if response else None
+    return predicted_intent
+
 async def log_conversation(message, response):
     global chat_history
     global is_yes_no_question
@@ -214,11 +230,105 @@ async def get_current_date():
     current_date = datetime.now().strftime("%Y-%m-%d")
     return current_date
 
+async def conversation_LLM(message, do):
+    prompt = do
+    prompts = [prompt]
+    llm_result = llm_chain({"question": prompts})  
+    generated_response = llm_result['text']
+    generated_response = generated_response.rstrip('.;')
+    res = generated_response.split('.')[0].strip()
+    result = await predict_emotion(res)
+    generated_response += f" {result}"
+    time_flag = False
+    monthly_flag = False
+    print(generated_response)
+    return generated_response
+
+async def get_conversation_state(state, message):
+    global conversation_state
+    if state == "time":
+        print("Conversation state : ", state)
+
+        conversation_state = state
+        prompt = f"Continue the conversation based on {message}. The topic is about time. Speak as if you are chatting with a friend"
+        generated_response = await conversation_LLM(message, prompt)
+
+        return generated_response 
+        
+    elif state == "start":
+        print("Conversation state:", state)
+
+        conversation_state = state
+        prompt = f"The user just greeted you.The user says {last_message}. Start a conversation dont say anything like good morning , good evening unless the user says so"
+        generated_response = await conversation_LLM(message, prompt)
+
+        return generated_response
+        
+
+    elif state == "seasonal":
+        print("Conversation state:",state)
+        pass
+
+    elif state == "time of the day":
+        pass
+
+    elif state == "current month":
+        pass
+
+    elif state == "Thenks":
+        pass
+
+    elif state == "No":
+        pass
+
+    elif state == "current date":
+        pass
+
+    elif state == "yesterdays date":
+        pass
+
+    elif state == "tomorrows date":
+        pass
+
+    elif state == "question":
+        pass
+
+    elif state == "current day":
+        pass
+
+    elif state == "day tomorrow":
+        pass
+
+    elif state == "day yesterday":
+        pass
+
+    elif state == "detailed weather":
+        pass
+
+    elif state == "less-detailed weather":
+        pass
+
+    elif state == "salutation-correction":
+        pass
+
+    elif state == "salutation":
+        pass
+
+    elif state == "salutation-goodnight":
+        pass
+
+    else:
+        print("END")
+        return None
+    
+
+
+
 ############################################
 
 
 ############### MAIN #######################
-async def process_en_message(msg,websocket):
+async def process_en_message(msg,websocket,callback=None):
     messages = await load_messages()
     please_say_again_counter = 0
     song_playing = False
@@ -252,18 +362,50 @@ async def process_en_message(msg,websocket):
     global last_three_messages
     global expected_yes_response
     global expected_response
-    
+    global conversation_state
+    global x
+    global received_message
+    #######################
+
+    examples = [
+        Example("Who is Elon Musk", "question"),
+        Example("Who is Ed Sheeran","question"),
+        Example("What is Machine Learning", "question"),
+        Example("How is this correct", "question"),
+        Example("Tell me Todays weather", "query"),
+        Example("Current Date", "query"),
+        Example("fruit", "fallback"),
+        Example("shoe", "fallback"),
+        Example("I want to exchange my item for another color", "fallback"),
+        Example("I ordered something and it wasn't what I expected. Can I return it?", "fallback"),
+        Example("What's your return policy?", "question"),
+        Example("Good morning", "greet"),
+        Example("Set an alarm", "query"),
+        Example("time of the year", "query"),
+        Example("tell me about yourself", "query"),
+        Example("Is my package delayed ?", "question"),
+        Example("Hello!", "greet"),
+        Example("Hi there!", "greet"),
+        Example("Thanks for your help!", "thank"),
+        Example("Thank you!", "thank"),
+    ]
 
     message = ''.join(msg)
     message_lower = message.lower()
     words = message_lower.split()
 
-    intent = loaded_model.predict([message])[0]
-    confidence_scores = loaded_model.predict_proba([message])[0]
+    inputs = [message_lower]
+    intent = await get_intent(inputs, examples)
 
-    print(f"Predicted Intent: {intent} - Confidence: {max(confidence_scores):.4f}")
+
+    intent_str = str(intent).strip("[]'")
+    print(f"Predicted Intent: {intent_str}")
 
     print(f"Data received: {message}")
+
+
+    previous_conversation_state = conversation_state
+    print("LAST CONVERSATION STATE : ", previous_conversation_state)
 
     if is_yes_no_question:
         expected_response = False
@@ -565,6 +707,9 @@ async def process_en_message(msg,websocket):
         
     if 'time' in words or time_flag:
         if len(words) > 1 and any(word in ['now', 'current'] for word in words) or time_flag:
+
+            conversation_state = "time"
+
             current_time = datetime.now().strftime("%I:%M %p")
             time_response = f"The time is {current_time}."
             await log_conversation(message, time_response)
@@ -573,10 +718,24 @@ async def process_en_message(msg,websocket):
             print(result)
             time_response += f" {result}"
             await websocket.send(time_response)
+
+            try:
+                received_message = await asyncio.wait_for(websocket.recv(), timeout=5)
+                print("Received message within 5 seconds:", received_message)
+
+            except asyncio.TimeoutError:
+                print("No message received within 5 seconds")
+            
+                x = await get_conversation_state(conversation_state, time_response)
+                await websocket.send(str(x))
+                print(conversation_state)
+
             time_flag = False
             current_time_flag = False
 
         elif len(words) > 1 and any(word in ['month', 'year', 'week'] for word in words)or time_flag:
+            conversation_state = "seasonal"
+
             prompt_with_time = message
             prompts = [prompt_with_time]
             llm_result = llm_chain({"question": prompts})  
@@ -589,9 +748,15 @@ async def process_en_message(msg,websocket):
             time_flag = False
             monthly_flag = False
             print(generated_response)
+
             await websocket.send(generated_response)
 
+            await asyncio.sleep(5)
+            x = await get_conversation_state(conversation_state,time_response)
+
         elif len(words) > 1 and 'day' in words or time_flag:
+            conversation_state = "time of the day"
+
             current_time = datetime.now().strftime("%I:%M %p")
             prompt_with_time = f"Based on the message:{message} tell the time of day with {current_time} whether it is afternoon,morning like that"
             prompts = [prompt_with_time]
@@ -604,9 +769,15 @@ async def process_en_message(msg,websocket):
             generated_response += f" {result}"
             time_flag = False
             print(generated_response)
+
+            await asyncio.sleep(5)
+            x = await get_conversation_state(conversation_state,time_response)
+
             await websocket.send(generated_response)
 
         elif len(words) > 1 and not any(word in ['what','now','current','month','year','week'] for word in words) or time_flag:
+            conversation_state = None
+
             prompt_with_time = f"Based on the message:{message} give an answer"
             prompts = [prompt_with_time]
             llm_result = llm_chain({"question": prompts})  
@@ -621,6 +792,8 @@ async def process_en_message(msg,websocket):
             await websocket.send(generated_response)
 
         else:
+            conversation_state = None
+
             resp = random.choice(messages['dynamic_responses']['time_questions'])
             expected_yes_response = True
             expected_response = True
@@ -634,12 +807,16 @@ async def process_en_message(msg,websocket):
 
     elif 'month' in words or monthly_flag:
         if 'current' in words or monthly_flag:
+
+            conversation_state = "current month"
+
             monthly_flag = False
             current_date_obj = datetime.now()
             current_month = current_date_obj.strftime("%B")  # %B gives the full month name
             print(current_month)
             await websocket.send(current_month)
         else:
+            conversation_state = None
             prompt_with_time = f"Ask if the user meant the current month"
             prompts = [prompt_with_time]
             llm_result = llm_chain({"question": prompts})  
@@ -655,8 +832,11 @@ async def process_en_message(msg,websocket):
             print(generated_response)
             await websocket.send(generated_response)
 
-    elif intent == 'Thank':
+    elif intent_str == 'Thank':
         if thank_flag:
+
+            conversation_state = "Thenks"
+
             prompt_with_no = message
             prompts = [prompt_with_no]
             llm_result = llm_chain({"question": prompts})  
@@ -672,6 +852,9 @@ async def process_en_message(msg,websocket):
             thank_flag = False
         else:
             prompt_with_no = f"Ask the user why are you saying thank you when you didnt do any help"
+
+            conversation_state = None
+
             prompts = [prompt_with_no]
             llm_result = llm_chain({"question": prompts})  
             generated_response = llm_result['text']
@@ -688,6 +871,9 @@ async def process_en_message(msg,websocket):
     elif 'no' in words and len(words) == 1:
         if no_flag:
             no_flag = False
+
+            conversation_state = "No"
+
             prompt_with_yes = f"Ask me what i want to know ?"
             prompts = [prompt_with_yes]
             llm_result = llm_chain({"question": prompts})  
@@ -701,6 +887,9 @@ async def process_en_message(msg,websocket):
             print(generated_response)
             await websocket.send(generated_response)
         else:
+
+            conversation_state = None
+
             prompt_with_no = f"I said 'no' without a reason, it's not related to any question.Tell me that i don't understand ask me is there anything specific."
             prompts = [prompt_with_no]
             llm_result = llm_chain({"question": prompts})  
@@ -718,6 +907,9 @@ async def process_en_message(msg,websocket):
     elif 'date' in words or date_flag:
         if len(words) > 1 or date_flag:
             if any(word in ['today', 'todays','current'] for word in words) or today_date_flag:
+
+                conversation_state = "current date"
+
                 current_date = await get_current_date()
                 prompt_with_date = f"Tell the current date {current_date}"
                 prompts = [prompt_with_date]
@@ -734,6 +926,9 @@ async def process_en_message(msg,websocket):
                 date_flag = False
 
             elif any(word in ['yesterday', 'yesterdays'] for word in words) or yesterday_date_flag:
+
+                conversation_state = "yesterdays date"
+
                 yesterday_date = datetime.now().date() - timedelta(days=1)
                 response = f"tell yesterday's date {yesterday_date.strftime('%Y-%m-%d')}"
                 prompts = [response]
@@ -749,6 +944,9 @@ async def process_en_message(msg,websocket):
                 await websocket.send(generated_response)
 
             elif any(word in ['tomorrow', 'tomorrows'] for word in words)or tomorrow_date_flag:
+
+                conversation_state = "tomorrows date"
+
                 tomorrow_date = datetime.now().date() + timedelta(days=1)
                 response = f"tell tomorrows date  {tomorrow_date.strftime('%Y-%m-%d')}"
                 prompts = [response]
@@ -767,6 +965,9 @@ async def process_en_message(msg,websocket):
 
             else:
                 response = f"tell the user that you don't understand"
+
+                conversation_state = None
+
                 prompts=[response]
                 llm_result = llm_chain({"question":prompts})
                 generated_response = llm_result['text']
@@ -778,6 +979,9 @@ async def process_en_message(msg,websocket):
                 await websocket.send(generated_response)
         else:
             if random.random() < 0.5:
+
+                conversation_state = None
+
                 resp = "Did you mean what is today's date ?"
                 expected_yes_response = True
                 expected_response = True
@@ -788,6 +992,9 @@ async def process_en_message(msg,websocket):
                 resp += f" {result}"
                 await websocket.send(resp)
             else:
+
+                conversation_state = None
+
                 prompt_about_date = "ask the user whether the user meant today's date or something else"
                 expected_yes_response = True
                 expected_response = True
@@ -801,8 +1008,9 @@ async def process_en_message(msg,websocket):
                 await websocket.send(generated_response)
 
 
-    elif intent == 'question' and all(word not in words for word in ['time', 'date','weather','play','pause','resume','yes','sure','certainly','no','ok']):
+    elif intent_str == 'question' and all(word not in words for word in ['time', 'date','weather','play','pause','resume','yes','sure','certainly','no','ok']):
         if len(words) == 1:
+            conversation_state = None
             single_word_response = "It seems you asked a single-word question. Please provide more context for a meaningful response."
             await log_conversation(message, single_word_response)
             res = single_word_response.split('.')[0].strip()
@@ -812,6 +1020,9 @@ async def process_en_message(msg,websocket):
             await websocket.send(single_word_response)
 
         else:
+
+            conversation_state = "question"
+
             prompts = [message]
             llm_result = llm_chain({"question": message})
             generated_response = llm_result['text']
@@ -830,6 +1041,9 @@ async def process_en_message(msg,websocket):
     elif 'day' in words or day_flag:
         if len(words) > 1 or day_flag:
             if 'today' in words or day_flag:
+
+                conversation_state = "current day"
+
                 day = datetime.today()
                 check = calendar.day_name[day.weekday()]
                 date_response = f"Today is {check}"
@@ -843,6 +1057,10 @@ async def process_en_message(msg,websocket):
                 await websocket.send(date_response)
 
             elif 'tomorrow' in words or day_flag:
+
+                conversation_state = "day tomorrow"
+
+
                 tomorrow = datetime.today() + timedelta(days=1)
                 day_of_week = calendar.day_name[tomorrow.weekday()]
                 date_response = f"Tomorrow is {day_of_week}"
@@ -856,6 +1074,9 @@ async def process_en_message(msg,websocket):
                 await websocket.send(date_response)
 
             elif 'yesterday' in words or day_flag:
+
+                conversation_state = "day yesterday"
+
                 tomorrow = datetime.today() - timedelta(days=1)
                 day_of_week = calendar.day_name[tomorrow.weekday()]
                 date_response = f"Yesterday was {day_of_week}"
@@ -870,6 +1091,9 @@ async def process_en_message(msg,websocket):
 
         else:
             prompt_about_day = f"You don't understand what the user meant Ask what the user wants to know about the day."
+
+            conversation_state = None
+
             llm_result = llm_chain({"question": prompt_about_day})
             day_question_response = llm_result['text']
             expected_yes_response = True
@@ -881,40 +1105,14 @@ async def process_en_message(msg,websocket):
             day_question_response += f" {result}"
             await websocket.send(day_question_response)
 
-    elif 'play' in words:
-        play_index = words.index('play')
-        if play_index + 1 < len(words):
-            song_name = ' '.join(words[play_index + 1:])
-            stream(song_name)
-            song_playing = True
-            await log_conversation(message, "Sure")
-            await websocket.send("Sure")
-
-    elif song_playing:
-        if 'pause' in words:
-            pause_and_play()
-            is_paused = True
-            await log_conversation(message, "Sure")
-            await websocket.send("Sure")
-
-        elif'resume' in words and is_paused:
-            resume_play()
-            is_paused = False
-            await log_conversation(message, "Sure")
-            await websocket.send("Sure")
-
-        elif 'stop' in words:
-            stop()
-            song_playing = False
-            is_paused = False
-            await log_conversation(message, "Done")
-            await websocket.send("Done")
-
     elif 'weather' in words and intent == 'question' or weather_flag:
         if len(words) > 1 or weather_flag:
             if 'today' or 'current' or 'todays' in words or weather_flag:
                 weather_flag = False
                 if 'detailed' in words:
+
+                    conversation_state = "detailed weather"
+
                     x = main_stuff()
                     res = x.split('.')[0]
                     result = await predict_emotion(res)
@@ -923,6 +1121,9 @@ async def process_en_message(msg,websocket):
                     await log_conversation(message, x)
                     await websocket.send(x)
                 else:
+
+                    conversation_state = "less-detailed weather"
+
                     y = main_stuff()
                     index_description = y.find('The overall condition is described as')
                     if index_description != -1:
@@ -942,6 +1143,9 @@ async def process_en_message(msg,websocket):
                         await log_conversation(message, y)
                         await websocket.send(y)
             else:
+
+                conversation_state = None
+
                 response = "Sorry I am unable to get the weather forecast.I will be able to help you with today's weather"
                 res = response.split('.')[0]
                 result = await predict_emotion(res)
@@ -951,6 +1155,9 @@ async def process_en_message(msg,websocket):
                 await websocket.send(response)
         else:
             if random.random() < 0.5:
+
+                conversation_state = None
+
                 resp = "Did you mean what is today's weather ?"
                 expected_yes_response = True
                 expected_respone = True
@@ -961,6 +1168,9 @@ async def process_en_message(msg,websocket):
                 resp += f" {result}"
                 await websocket.send(resp)
             else:
+
+                conversation_state = None
+
                 prompt_about_date = "ask whether the user meant today's weather"
                 expected_yes_response = True
                 expected_respone = True
@@ -974,8 +1184,11 @@ async def process_en_message(msg,websocket):
                 await websocket.send(generated_response)
 
     else:
-        if any(greeting in message_lower for greeting in ['good morning', 'good afternoon', 'good evening', 'good night']) and intent == 'greet':
+        if any(greeting in message_lower for greeting in ['good morning', 'good afternoon', 'good evening', 'good night']) and intent_str == 'greet':
             if 'good ' + time_of_day not in message_lower:
+
+                conversation_state = 'salutation-correction'
+
                 correction = random.choice(messages['corrections']).format(time_of_day=time_of_day, greeting=message_lower)
                 await log_conversation(message, correction)
                 res = correction.split('.')[0]
@@ -985,12 +1198,18 @@ async def process_en_message(msg,websocket):
                 await websocket.send(correction)
 
             if random.random() < 0.5:
+
+                conversation_state = 'salutation'
+
                 response = random.choice(messages['salutations'][f'good_{time_of_day}'])
                 res = response.split('.')[0]
                 result = await predict_emotion(response)
                 response += f" {result}"
                 print(result)
             else:
+
+                conversation_state = 'salutation'
+
                 prompts = [message]
                 llm_result = llm_chain({"question": message})
                 response = llm_result['text']
@@ -1002,6 +1221,9 @@ async def process_en_message(msg,websocket):
             await websocket.send(response)
 
         elif 'good night' in message_lower and time_of_day not in ['night', 'evening']:
+
+            conversation_state = 'salutation-goodnight'
+
             correction = random.choice(messages['corrections']).format(time_of_day=time_of_day, greeting=message_lower)
             await log_conversation(message, correction)
             res = correction.split('.')[0]
@@ -1014,20 +1236,39 @@ async def process_en_message(msg,websocket):
         elif len(words) == 1:
             for key, options in messages['greetings'].items():
                 if key in message_lower:
+                    conversation_state = "start"
+
                     response = random.choice(options)
                     res = response.split('.')[0]
                     result = await predict_emotion(res)
                     print(result)
                     response += f" {result}"
+                    print(response)
+                    await log_conversation(message, response)
+                    await websocket.send(response)
+
+                    await asyncio.sleep(5)
+                    x = await get_conversation_state(conversation_state,response)
+
+                    print(conversation_state)
+                    await websocket.send(str(x))
                     break
             else:
                 response = random.choice(messages['dynamic_responses']['default'])
+                
+                conversation_state = None
+
                 expected_yes_response = True
                 expected_response=True
                 res = response.split('.')[0]
                 result = await predict_emotion(res)
                 print(result)
-        else:
+                response += f" {result}"
+                print(response)
+                await log_conversation(message, response)
+                await websocket.send(response)
+        elif conversation_state == None and (previous_conversation_state != conversation_state) and intent_str == 'fallback':
+            conversation_state = None
             response = random.choice(messages['dynamic_responses']['default'])
             expected_yes_response = True
             expected_response=True
@@ -1035,6 +1276,19 @@ async def process_en_message(msg,websocket):
             result = await predict_emotion(res)
             print(result)
             response += f" {result}"
-        await log_conversation(message, response)
-        await websocket.send(response)
-        
+            await log_conversation(message, response)
+            await websocket.send(response)
+    print("CURRENT CONVERSATION STATE : ",conversation_state)
+    if callback:
+        await callback(websocket,received_message)
+        received_message = None
+
+
+    #------------------- TOPIC SELECTOR ----------------------#
+    if conversation_state != None and intent_str != 'fallback':
+        if previous_conversation_state == conversation_state:
+            prmpt = f"Based on the user's query {message} and Based on your last reply : {last_message}.Continue Chatting with Your Friend"
+            reply_state = await conversation_LLM(message,prmpt)
+            await log_conversation(message,reply_state)
+            await websocket.send(reply_state)
+    #---------------------------------------------------------#

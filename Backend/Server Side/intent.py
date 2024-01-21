@@ -1,21 +1,20 @@
-import spacy
+from langchain.embeddings import GooglePalmEmbeddings
+from langchain.llms import GooglePalm
+import google.generativeai
+import os
 
-# Load the saved model
-loaded_nlp = spacy.load("./Intclass")
+async def generate_palm_embedding(prompt):
+    API_KEY = open('PALM_api.txt', 'r').read()
+    
+    llm = GooglePalm(google_api_key=API_KEY)
+    llm.temperature = 0.1
+    
+    prompts = [prompt]
+    llm_result = llm._generate(prompts)
+    
+    return llm_result.generations[0][0].text
 
-# Continuously prompt the user for input
-while True:
-    # Get user input
-    user_input = input("Enter a text to classify intent (or 'exit' to stop): ")
-
-    # Check if the user wants to exit
-    if user_input.lower() == 'exit':
-        break
-
-    # Classify intent for user input
-    doc = loaded_nlp(user_input)
-    intent = max(doc.cats, key=doc.cats.get)
-    confidence = doc.cats[intent]
-
-    # Print the result
-    print(f"Predicted Intent: {intent} - Confidence: {confidence}")
+# Example usage
+prompt = 'Explain the difference between effective and affective with examples'
+result = generate_palm_embedding(prompt)
+print(result)
