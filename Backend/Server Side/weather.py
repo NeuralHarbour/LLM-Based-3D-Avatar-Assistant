@@ -28,7 +28,7 @@ def kelvin_to_celsius_fahrenheit(kelvin):
 
 
 def load_responses():
-    with open("responses.yaml", "r") as file:
+    with open("./PresetResponses/en.yaml", "r") as file:
         return yaml.safe_load(file)
 
 def get_intro_phrases(responses):

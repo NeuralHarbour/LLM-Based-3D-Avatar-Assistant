@@ -39,7 +39,7 @@ from langchain.memory import ChatMessageHistory
 import warnings
 import re
 from weather import main_stuff
-#from spot import stream, pause_and_play, resume_play, stop
+from spot import stream, pause_and_play, resume_play, stop
 from datetime import timedelta
 import time
 from nltk.tokenize import word_tokenize
@@ -96,6 +96,7 @@ is_spamming = False
 long_message = False
 state_changed = False
 long_no_message = False
+song_playing = False
 #################################################
 
 prompt = ChatPromptTemplate.from_messages(
@@ -259,7 +260,7 @@ async def get_conversation_state(state, message):
         print("Conversation state:", state)
 
         conversation_state = state
-        prompt = f"The user just greeted you.The user says {last_message}. Start a conversation dont say anything like good morning , good evening unless the user says so"
+        prompt = f"The user just greeted you.The user says {last_message}. Start a conversation by asking like how are you. Dont greet again"
         generated_response = await conversation_LLM(message, prompt)
 
         return generated_response
@@ -328,10 +329,9 @@ async def get_conversation_state(state, message):
 
 
 ############### MAIN #######################
-async def process_en_message(msg,websocket,callback=None):
+async def process_en_message(msg,websocket,callback= None):
     messages = await load_messages()
     please_say_again_counter = 0
-    song_playing = False
     is_paused = False
 
     ## GLOBAL VARIABLES ##
@@ -365,6 +365,7 @@ async def process_en_message(msg,websocket,callback=None):
     global conversation_state
     global x
     global received_message
+    global song_playing
     #######################
 
     examples = [
@@ -722,6 +723,8 @@ async def process_en_message(msg,websocket,callback=None):
             try:
                 received_message = await asyncio.wait_for(websocket.recv(), timeout=5)
                 print("Received message within 5 seconds:", received_message)
+                if callback:
+                    await callback(websocket,received_message)
 
             except asyncio.TimeoutError:
                 print("No message received within 5 seconds")
@@ -1038,6 +1041,7 @@ async def process_en_message(msg,websocket,callback=None):
                 print("QUESTION FOUND")
             await websocket.send(generated_response)
 
+
     elif 'day' in words or day_flag:
         if len(words) > 1 or day_flag:
             if 'today' in words or day_flag:
@@ -1105,7 +1109,56 @@ async def process_en_message(msg,websocket,callback=None):
             day_question_response += f" {result}"
             await websocket.send(day_question_response)
 
-    elif 'weather' in words and intent == 'question' or weather_flag:
+    elif 'play' in words:
+        conversation_state = None
+        play_index = words.index('play')
+        if play_index + 1 < len(words):
+            song_name = ' '.join(words[play_index + 1:])
+            stream(song_name)
+            song_playing = True
+            await log_conversation(message, "Sure")
+            await websocket.send("Sure")
+
+    elif song_playing:
+        if 'pause' in words:
+            pause_and_play()
+            is_paused = True
+            await log_conversation(message, "Sure")
+            await websocket.send("Sure")
+
+        elif'resume' in words and is_paused:
+            resume_play()
+            is_paused = False
+            await log_conversation(message, "Sure")
+            await websocket.send("Sure")
+
+        elif 'stop' in words:
+            stop()
+            song_playing = False
+            is_paused = False
+            await log_conversation(message, "Done")
+            await websocket.send("Done")
+
+    elif 'change' in words:
+        if 'look' in words:
+            conversation_state = None
+            await websocket.send("Sure! How do you like my new look")
+
+
+    elif 'timer' in words:
+        if 'set' in words:
+            print("TIMER REQUEST")
+            conversation_state = None
+            await websocket.send("Timer Started")
+        elif 'pause' in words:
+            conversation_state = None
+            await websocket.send("Timer Paused")
+        elif 'stop' in words:
+            conversation_state = None
+            await websocket.send("Timer Stopped")
+
+
+    elif 'weather' in words or weather_flag:
         if len(words) > 1 or weather_flag:
             if 'today' or 'current' or 'todays' in words or weather_flag:
                 weather_flag = False
@@ -1279,9 +1332,7 @@ async def process_en_message(msg,websocket,callback=None):
             await log_conversation(message, response)
             await websocket.send(response)
     print("CURRENT CONVERSATION STATE : ",conversation_state)
-    if callback:
-        await callback(websocket,received_message)
-        received_message = None
+    print("Song Playing : ",song_playing)
 
 
     #------------------- TOPIC SELECTOR ----------------------#

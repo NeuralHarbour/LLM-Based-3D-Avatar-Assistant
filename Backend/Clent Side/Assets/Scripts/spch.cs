@@ -216,12 +216,13 @@ public class spch : MonoBehaviour
                 // Reset the currentEmotion variable after using it
                 currentEmotion = "";
             }
+            /*
             if (receivedQuestion)
             {
-                playquestionanimation();
 
                 receivedQuestion = false;
             }
+            */
 
         }
     }
@@ -236,6 +237,7 @@ public class spch : MonoBehaviour
     // Handle the received message
     public void HandleMessageReceived(string message)
     {
+
         int startIndex = message.IndexOf('[');
         int endIndex = message.LastIndexOf(']');
         string emotion = string.Empty;
@@ -258,7 +260,7 @@ public class spch : MonoBehaviour
         if (isQuestion)
         {
             Debug.Log("Recieved a Question");
-            receivedQuestion = true;
+            //receivedQuestion = true;
         }
 
 

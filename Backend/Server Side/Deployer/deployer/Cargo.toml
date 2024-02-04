@@ -1,0 +1,12 @@
+[package]
+name = "deployer"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+figlet-rs = "0.1.5"
+indicatif = "0.16.0"
+rodio = "0.17.3"
+ctrlc = "3.4.2"

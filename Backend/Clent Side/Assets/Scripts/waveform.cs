@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using WebSocketSharp;
+using TMPro;
 
 [RequireComponent(typeof(AudioSource))]
 public class waveform : MonoBehaviour
@@ -21,16 +22,19 @@ public class waveform : MonoBehaviour
     Emitter e;
     spch speech;
     AudioSource _audioSource;
+    AlarmController AC;
 
     public int activeCharacterIndex = 0;
 
     public AudioSource Button;
     public AudioSource loop;
     public AudioSource ButtonRel;
+    public AudioSource Timer;
     public AudioClip _audioClip;
     public AudioClip Buttonpress;
     public AudioClip ButtonRelease;
     public AudioClip loopedSound;
+    public AudioClip timerCompletedSound;
 
     public static float[] _samples = new float[512];
     public static float[] _freqBand = new float[8];
@@ -46,10 +50,10 @@ public class waveform : MonoBehaviour
     public float cooldownDuration = 10.0f;
     private float cooldownTimer = 0f;
     float animationDuration = 3.17f;
+    float remainingTime;
 
     [SerializeField] private KeyCode pushToTalkKey = KeyCode.Space;
 
-    //microphone
     public string _selectedDevice;
     public AudioMixerGroup _mixerGroupMicrophone, _mixerGroupMaster;
 
@@ -57,6 +61,7 @@ public class waveform : MonoBehaviour
 
     public Text displayText;
     public Text displayText2;
+    public TextMeshPro timerText;
 
     Color customColor = new Color(0.2f, 0.7f, 0.4f, 1.0f);
     string message = "";
@@ -72,6 +77,10 @@ public class waveform : MonoBehaviour
     private bool hasPlayed = false;
     private bool isCooldown = false;
     bool isCharacterActive = false;
+    bool isTimerRunning = false;
+    bool isTimerPaused = false;
+    bool endFlagValue;
+    bool wakewordreuse = false;
 
     private readonly object responseLock = new object();
     private readonly object busyLock = new object();
@@ -91,8 +100,10 @@ public class waveform : MonoBehaviour
     private Spchinstance instance;
 
     public string language = "";
-    bool endFlagValue;
+    public string txt = "";
+    public static int CameraStatus = 0;
 
+    Coroutine timerCoroutine;
     // Start is called before the first frame update
     void Start()
     {
@@ -101,6 +112,7 @@ public class waveform : MonoBehaviour
         e = GameObject.FindGameObjectWithTag("Middleware").GetComponent<Emitter>();
         speech = GameObject.FindGameObjectWithTag("character").GetComponent<spch>();
         instance = GameObject.FindGameObjectWithTag("Speech").GetComponent<Spchinstance>();
+        AC = GameObject.FindGameObjectWithTag("Alarm").GetComponent<AlarmController>();
         IL = GetComponent<Integrity_Loader>();
 
         if (IL != null)
@@ -308,6 +320,7 @@ public class waveform : MonoBehaviour
         GetAmplitude();
         if (isWakeWordDetected)
         {
+            wakewordreuse = true;
             if (ended && !hasExecuted)
             {
                 hasExecuted = true;
@@ -703,10 +716,31 @@ public class waveform : MonoBehaviour
                 }
                 Debug.Log("ASR Response: " + receivedText);
                 Debug.Log("LANGAUGE: " + language);
+                Debug.Log("Obtained No of Faces : " + CameraStatus);
                 if (receivedText == "start" || receivedText == "こんにちは" || receivedText == "开始" || receivedText == "hola amigo" || receivedText == "nначинать")
                 {
-                    Debug.Log("WakeWord Detected");
-                    isWakeWordDetected = true;
+                    if (!wakewordreuse)
+                    {
+                        Debug.Log("WakeWord Detected");
+                        if (CameraStatus != 0)
+                        {
+                            isWakeWordDetected = true;
+                        }
+                        else if (!isWakeWordDetected)
+                        {
+                            Debug.Log("Face Not Detected");
+                            if (language == "en")
+                            {
+                                DisplayText("Please Show Your Face", displayText, displayTime: 3.0f, 30);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log("SUCCESS");
+                        DisplayText(receivedText, displayText2, displayTime: 7.0f, 30);
+                        wx.SendInputToServer(textToSend);
+                    }
                 }
                 else if (isWakeWordDetected)
                 {
@@ -737,7 +771,30 @@ public class waveform : MonoBehaviour
                     {
                         haschangedoutfit = true;
                     }
-
+                    else if (receivedText.StartsWith("set"))
+                    {
+                        if (receivedText.Contains("timer") && !isTimerRunning)
+                        {
+                            HandleTimer(receivedText);
+                        }
+                        else if (receivedText.Contains("alarm"))
+                        {
+                            HandleAlarm(receivedText);
+                        }
+                    }
+                    else if (receivedText == "stop the timer" && isTimerRunning || isTimerPaused) {
+                        StopTimerCoroutine();
+                        Debug.Log("Timer stopped by user.");
+                    }
+                    else if (receivedText == "pause the timer" && isTimerRunning)
+                    {
+                        Debug.Log("Timer Paused");
+                        PauseTimer();
+                    }
+                    else if(receivedText == "resume the timer" && isTimerPaused)
+                    {
+                        Debug.Log("Timer Resumed");
+                    }
                 }
                 else
                 {
@@ -768,6 +825,180 @@ public class waveform : MonoBehaviour
         }
     }
 
+    void HandleTimer(string receivedText)
+    {
+        Regex hourRegex = new Regex(@"(\d+)\s*hour(s)?", RegexOptions.IgnoreCase);
+        Regex minRegex = new Regex(@"(\d+)\s*minute(s)?", RegexOptions.IgnoreCase);
+        Regex secRegex = new Regex(@"(\d+)\s*second(s)?", RegexOptions.IgnoreCase);
+        int hour = ExtractTimeComponent(receivedText, hourRegex);
+        int min = ExtractTimeComponent(receivedText, minRegex);
+        int sec = ExtractTimeComponent(receivedText, secRegex);
+
+        Debug.Log("Timer components: Hours = " + hour + ", Minutes = " + min + ", Seconds = " + sec);
+        int durationInSeconds = hour * 3600 + min * 60 + sec;
+        StartTimerCoroutine(durationInSeconds);
+    }
+
+    int ExtractTimeComponent(string receivedText, Regex regex)
+    {
+        Match match = regex.Match(receivedText);
+        if (match.Success)
+        {
+            int value;
+            if (int.TryParse(match.Groups[1].Value, out value))
+            {
+                return value;
+            }
+        }
+        return 0;
+    }
+
+    void HandleAlarm(string receivedText)
+    {
+        string[] words = receivedText.Split(' ');
+        int hour = 0, min = 0, sec = 0;
+        foreach (string word in words)
+        {
+            if (word.EndsWith("hour") || word.EndsWith("hours"))
+            {
+                int.TryParse(word.Replace("hour", "").Replace("hours", ""), out hour);
+            }
+            else if (word.EndsWith("minute") || word.EndsWith("minutes"))
+            {
+                int.TryParse(word.Replace("minute", "").Replace("minutes", ""), out min);
+            }
+            else if (word.EndsWith("second") || word.EndsWith("seconds"))
+            {
+                int.TryParse(word.Replace("second", "").Replace("seconds", ""), out sec);
+            }
+        }
+        ScheduleAlarm(hour, min, sec);
+    }
+
+    void ScheduleAlarm(int hour, int min, int sec)
+    {
+        DateTime currentDate = DateTime.Now;
+        DateTime alarmTime = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, hour, min, sec);
+        if (alarmTime < currentDate)
+        {
+            alarmTime = alarmTime.AddDays(1);
+        }
+        TimeSpan timeUntilAlarm = alarmTime - currentDate;
+        StartCoroutine(WaitForAlarm(timeUntilAlarm.TotalSeconds));
+    }
+
+    void StartTimerCoroutine(int duration)
+    {
+        if (timerCoroutine != null)
+        {
+            StopCoroutine(timerCoroutine);
+        }
+        timerCoroutine = StartCoroutine(StartTimer(duration));
+    }
+
+    void StopTimerCoroutine()
+    {
+        if (timerCoroutine != null)
+        {
+            StopCoroutine(timerCoroutine);
+            timerCoroutine = null;
+            AC.PlayDisappearAnim();
+            AC.HideGameObject();
+        }
+        else
+        {
+            if (language == "en")
+            {
+                txt = "Timer is not active";
+                instance.ReceiveMessage(txt);
+            }
+        }
+    }
+    void PauseTimer()
+    {
+        if (isTimerRunning && timerCoroutine != null)
+        {
+            isTimerPaused = true;
+            Debug.Log("Timer paused.");
+
+        }
+        else
+        {
+            if (language == "en")
+            {
+                txt = "Timer is not active";
+                instance.ReceiveMessage(txt);
+            }
+        }
+    }
+
+
+    void ResumeTimer()
+    {
+        if (isTimerRunning && timerCoroutine != null && isTimerPaused)
+        {
+            isTimerPaused = false;
+            Debug.Log("Timer resumed.");
+            StartCoroutine(StartTimer(remainingTime));
+        }
+    }
+
+
+
+    IEnumerator StartTimer(float duration)
+    {
+        AC.ShowAlarm();
+        yield return new WaitForSecondsRealtime(2f);
+        Debug.Log("Timer started for " + duration + " seconds");
+        isTimerRunning = true;
+        AC.PlayFloatAnim();
+
+        remainingTime = duration; // Store the remaining time
+
+        while (remainingTime > 0)
+        {
+            int hours = Mathf.FloorToInt(remainingTime / 3600);
+            int minutes = Mathf.FloorToInt((remainingTime % 3600) / 60);
+            int seconds = Mathf.FloorToInt(remainingTime % 60);
+            string timeString = string.Format("{0:00}:{1:00}:{2:00}", hours, minutes, seconds);
+            timerText.text = timeString;
+
+            if (!isTimerPaused)
+            {
+                yield return new WaitForSecondsRealtime(1f);
+                remainingTime -= 1f;
+            }
+            else
+            {
+                yield return null;
+            }
+        }
+
+        if (Timer != null && timerCompletedSound != null)
+        {
+            Timer.PlayOneShot(timerCompletedSound);
+        }
+        else
+        {
+            Debug.LogWarning("AudioSource or AudioClip not assigned for timer completion sound!");
+        }
+
+        Debug.Log("Timer completed!");
+        AC.PlayDisappearAnim();
+        isTimerRunning = false;
+        yield return new WaitForSecondsRealtime(0.5f);
+        AC.HideGameObject();
+    }
+
+
+
+    IEnumerator WaitForAlarm(double secondsUntilAlarm)
+    {
+        Debug.Log("Alarm set!");
+        yield return new WaitForSeconds((float)secondsUntilAlarm);
+        Debug.Log("Alarm!");
+    }
+
     bool ContainsJapaneseCharacters(string input)
     {
         foreach (char c in input)
@@ -794,6 +1025,18 @@ public class waveform : MonoBehaviour
         lock (responseLock)
         {
             return responseReceived;
+        }
+    }
+    public static void UpdateReceivedData(string newData)
+    {
+        if (int.TryParse(newData, out int numberOfFaces))
+        {
+            CameraStatus = numberOfFaces;
+            Debug.Log("Faces Detected: " + CameraStatus);
+        }
+        else
+        {
+            Debug.LogError("Error: Invalid data received for the number of faces.");
         }
     }
 }

@@ -40,9 +40,7 @@ import en_module
 
 
 ############### MAIN #######################
-async def on_message(websocket,received_message=None):
-    if received_message:
-        message = received_message
+async def on_message(websocket):
     async for message in websocket:
         print(f"Data received: {message}")
         
@@ -65,7 +63,7 @@ async def on_message(websocket,received_message=None):
                 await en_module.process_en_message(message, websocket,callback = handle_received_message)
                 continue
 
-        elif language == '[jp]':
+        elif language == '[ja]':
             print("Switching To Japanese Server")
             jp_message_lower = message.lower()
             jp_words = jp_message_lower.split()
@@ -88,8 +86,47 @@ async def on_message(websocket,received_message=None):
             print("Unsupported language")
 
 async def handle_received_message(websocket, received_message):
-    print("Received message from process_en_message:", received_message)
-    await on_message(websocket, received_message)
+    print("RECIEVED A KOLLBAK")
+    message = received_message
+    print(f"Data received: {message}")
+        
+    start = message.rfind('[')
+    end = message.rfind(']')
+
+    language = None
+    if start != -1 and end != -1 and start < end:
+        language = message[start:end + 1]
+        message = message[:start] + message[end + 1:]  # Remove language tag from message
+        print(f"Detected language: {language}")
+    else:
+        print("Language tag not found or invalid format")
+
+    words  = message.split()
+    if language == '[en]' or language == '[te]':
+        if len(words) >=7:
+            await websocket.send("I can't process this message")
+        else:
+            await en_module.process_en_message(message, websocket,callback = None)
+
+    elif language == '[jp]':
+        print("Switching To Japanese Server")
+        jp_message_lower = message.lower()
+        jp_words = jp_message_lower.split()
+        await jp_module.process_japanese_message(jp_words, websocket)
+
+    elif language == '[zh]':
+        print("Switching to Chinese Server")
+
+    elif language == '[ru]':
+        print("Switching to Russian Server")
+
+    elif language == '[es]':
+        print("Switching to Spanish Server")
+
+    else:
+        print("Unsupported language")
+    message = None
+    print("MESSAGE SET AS NONE")
 
 async def main():
     server = await websockets.serve(lambda ws, path: on_message(ws), "localhost", 8080)
