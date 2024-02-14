@@ -136,7 +136,7 @@ Proprietory Software and Hardware
 
 
 <!-- ACKNOWLEDGMENTS -->
-## Acknowledgments and Major Contributors
+## Acknowledgments
 
 * [AI Waifu Vtuber](https://github.com/ardha27/AI-Waifu-Vtuber)
 * [Open Source Multilingual Assistant](https://github.com/1neReality/M.I.T.S.U.H.A.)
