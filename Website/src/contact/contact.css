@@ -1,4 +1,6 @@
-*, *:before, *:after {
+*,
+*:before,
+*:after {
   box-sizing: border-box;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -54,7 +56,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  color: skyblue;
+  color: black;
   font-size: 26px;
 }
 
@@ -66,7 +68,7 @@
   bottom: -10px;
   width: 25px;
   height: 4px;
-  background: skyblue;
+  background: #e84d08;
 }
 
 .app-contact {
@@ -106,13 +108,13 @@
 }
 
 .app-form-control:focus {
-  border-bottom-color: skyblue;
+  border-bottom-color: #e84d08;
 }
 
 .app-form-button {
   background: none;
   border: none;
-  color: skyblue;
+  color: #e84d08;
   font-size: 14px;
   cursor: pointer;
   outline: none;

@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88684271e27adb843b6570957c9e7637, type: 3}
+  m_Name: _vrm1_
+  m_EditorClassIdentifier: 
+  m_prefab: {fileID: -1728013695380148634, guid: 90b4a50262e89ae42a1c6459868ff505,
+    type: 3}
+  Meta:
+    Name: Aerobiks MOD
+    Version: 1.0
+    Authors:
+    - Neural Harbour AI
+    CopyrightInformation: "\xA9NeuralHarbourAI 2024"
+    ContactInformation: 
+    References: []
+    ThirdPartyLicenses: 
+    Thumbnail: {fileID: 2178681595258467215, guid: 90b4a50262e89ae42a1c6459868ff505,
+      type: 3}
+    AvatarPermission: 0
+    ViolentUsage: 0
+    SexualUsage: 0
+    CommercialUsage: 2
+    PoliticalOrReligiousUsage: 0
+    AntisocialOrHateUsage: 0
+    CreditNotation: 0
+    Redistribution: 0
+    Modification: 0
+    OtherLicenseUrl: 
+  Expression:
+    Happy: {fileID: 11400000, guid: 2e567332646888143a4f535edc829021, type: 2}
+    Angry: {fileID: 11400000, guid: 6237687456e1f654b89e007973057a20, type: 2}
+    Sad: {fileID: 11400000, guid: 9bc3a15086dacc342ade7375e93f5890, type: 2}
+    Relaxed: {fileID: 11400000, guid: 0a0b1e3644f17e649879882d54f573e4, type: 2}
+    Surprised: {fileID: 11400000, guid: 0604035a2f6aa73459ebe47eca28f2f6, type: 2}
+    Aa: {fileID: 11400000, guid: 92efd03006aed164bae7123170d10443, type: 2}
+    Ih: {fileID: 11400000, guid: e08a8f6ad06a7b44188dda7b2563905c, type: 2}
+    Ou: {fileID: 11400000, guid: ae2769cdc136c164a92645b7c6403e44, type: 2}
+    Ee: {fileID: 11400000, guid: 2860b6c085be46043a1df1d3025294d8, type: 2}
+    Oh: {fileID: 11400000, guid: cccc1aea50ead3645bea16129c62f543, type: 2}
+    Blink: {fileID: 11400000, guid: 5024438e37c600b4fb04770c6f5aaf08, type: 2}
+    BlinkLeft: {fileID: 11400000, guid: c562a755ba0344847a9ee0ee3d99d205, type: 2}
+    BlinkRight: {fileID: 11400000, guid: 46d2eb00f3d0478488c87ea0fdd248fe, type: 2}
+    LookUp: {fileID: 11400000, guid: 6793692dc58e2614fa55251afadc06e0, type: 2}
+    LookDown: {fileID: 11400000, guid: 161e3e0c16f407f46bb39f13ac743a06, type: 2}
+    LookLeft: {fileID: 11400000, guid: c8bd4ed467faabf4cbcb8cfa12c3d785, type: 2}
+    LookRight: {fileID: 11400000, guid: 01bb549a49ccc6e48911d08331f95f69, type: 2}
+    Neutral: {fileID: 11400000, guid: cd2b4f5b9699aa14299991d15fbd0ebb, type: 2}
+    CustomClips: []
+  LookAt:
+    OffsetFromHead: {x: -0, y: 0.06, z: 0}
+    LookAtType: 0
+    HorizontalOuter:
+      CurveXRangeDegree: 90
+      CurveYRangeDegree: 12
+    HorizontalInner:
+      CurveXRangeDegree: 90
+      CurveYRangeDegree: 8
+    VerticalDown:
+      CurveXRangeDegree: 90
+      CurveYRangeDegree: 10
+    VerticalUp:
+      CurveXRangeDegree: 90
+      CurveYRangeDegree: 10
+  FirstPerson:
+    Renderers:
+    - Renderer: Face
+      FirstPersonFlag: 0
+    - Renderer: Body
+      FirstPersonFlag: 0
+    - Renderer: Hair
+      FirstPersonFlag: 0

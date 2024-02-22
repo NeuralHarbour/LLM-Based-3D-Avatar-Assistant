@@ -11,6 +11,8 @@ public class spch : MonoBehaviour
     private WsClient ws;
     private WeatherText wt;
     public HoloPanel hp;
+    private ChairController CC;
+    WorkoutManager WM;
 
     public bool shouldSpeak = false;
     private bool startsWithGreeting = false;
@@ -19,8 +21,10 @@ public class spch : MonoBehaviour
     private bool weatherreq = false;
     private bool delayStarted = false;
     private bool receivedQuestion = false;
+    public bool isSitting = false;
 
     private Animator animator;
+    public Animator chair_animator;
 
     public Text timetext;
     public Text DateText;
@@ -53,6 +57,7 @@ public class spch : MonoBehaviour
 
     private Vector3 initialPosition;
     private Vector3 WeatherPosition;
+    private Vector3 initialChairPosition;
 
     public GameObject gameobjecttomove;
     public GameObject initialpositionobject;
@@ -64,6 +69,15 @@ public class spch : MonoBehaviour
     private float delayTime = 2.0f;
 
     public VisualEffect Entry;
+
+    private float idleTimer = 0.0f;
+    private float timeSinceLastSit = 0.0f;
+    private float minActionTime = 30.0f; // 30 seconds
+    private float maxActionTime = 60.0f; // 60 seconds
+    private float _RandomActionTime = 0.0f;
+
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -73,6 +87,7 @@ public class spch : MonoBehaviour
                                          .Select(obj => obj.GetComponent<WeatherText>())
                                          .ToArray();
         instance = GameObject.FindGameObjectWithTag("Speech").GetComponent<Spchinstance>();
+        CC = GameObject.FindGameObjectWithTag("Chair").GetComponent<ChairController>();
         if (weatherTexts.Length > 0)
         {
             foreach (WeatherText weatherText in weatherTexts)
@@ -80,7 +95,7 @@ public class spch : MonoBehaviour
                 if (weatherText != null)
                 {
                     weatherTextInstances.Add(weatherText);
-                    weatherText.Hide(); // Example method call on each WeatherText instance
+                    weatherText.Hide();
                 }
             }
         }
@@ -104,6 +119,7 @@ public class spch : MonoBehaviour
         {
             Debug.LogWarning("HoloPanel reference not assigned.");
         }
+        WM = GameObject.FindGameObjectWithTag("waveform").GetComponent<WorkoutManager>();
     }
     public void UpdateActiveAnimator(Animator newAnimator, GameObject newCharacter)
     {
@@ -120,6 +136,29 @@ public class spch : MonoBehaviour
     }
     public void Update()
     {
+        _RandomActionTime += Time.deltaTime;
+        if (_RandomActionTime >= Random.Range(minActionTime, maxActionTime))
+        {
+            _RandomActionTime = 0f;
+            Debug.Log("Performing a random Action");
+            List<System.Action> randomActions = new List<System.Action>
+            {
+                WalKAround,
+                Checkthephone,
+                SitDownRandomly,
+                Humm,
+                CleanThearea,
+                playvideogame,
+                listentomusic,
+            };
+
+            // Select a random function and execute it
+            if(!isSitting && !WM._isworkoutmode)
+            {
+                int randomIndex = Random.Range(0, randomActions.Count);
+                randomActions[randomIndex].Invoke();
+            }
+        }
 
         if (shouldSpeak)
         {
@@ -227,6 +266,123 @@ public class spch : MonoBehaviour
         }
     }
 
+    private void SitDownRandomly()
+    {
+        Debug.Log("Character is sitting down");
+
+        isSitting = true;
+
+        CC.ShowChair();
+
+        StartCoroutine(SitDownAnimation());
+
+
+    }
+
+    IEnumerator SitDownAnimation()
+    {
+        animator.applyRootMotion = true;
+        yield return new WaitForSeconds(1f);
+        if (Random.value > 0.5)
+        {
+            animator.SetTrigger("SitDown");
+            yield return new WaitForSeconds(0.5f);
+            animator.SetTrigger("Idle(Sit)");
+            yield return new WaitForSeconds(2f);
+            chair_animator.SetTrigger("StartFloat");
+        }
+        else
+        {
+            // Set triggers without playing animation
+            animator.Play("SitDownVar1");
+            yield return new WaitForSeconds(2f);
+            chair_animator.SetTrigger("StartFloat");
+        }
+        // Get initial positions
+        Vector3 initialCharacterPosition = gameobjecttomove.transform.position;
+        initialChairPosition = chair_animator.transform.position;
+        Vector3 positionOffset = initialChairPosition - initialCharacterPosition;
+        StartCoroutine(StandUpTimer(30.0f, 60.0f));
+
+        // Continuously update the character's position to match the chair's position
+        while (true)
+        {
+            if (isSitting)
+            {
+                Vector3 newPosition = chair_animator.transform.position - positionOffset;
+                newPosition += chair_animator.transform.forward * 0f;
+                gameobjecttomove.transform.position = newPosition;
+            }
+            else
+            {
+                Vector3 newPosition = gameobjecttomove.transform.position;
+                newPosition.y -= 0.07f;
+                gameobjecttomove.transform.position = newPosition;
+                break; // Exit the loop
+            }
+            yield return null;
+        }
+
+    }
+
+
+    IEnumerator StandUpTimer(float minDelay, float maxDelay)
+    {
+        float delay = Random.Range(minDelay, maxDelay);
+        yield return new WaitForSeconds(delay);
+
+        StandUp();
+    }
+
+    void StandUp()
+    {
+        Debug.Log("Character is standing up");
+        StartCoroutine(StandingUp());
+    }
+
+    IEnumerator StandingUp()
+    {
+        isSitting = false;
+        animator.applyRootMotion = true;
+        chair_animator.SetTrigger("ChairDown");
+        animator.SetTrigger("standup");
+        yield return new WaitForSeconds(5f);
+        chair_animator.SetTrigger("Disappear");
+        yield return new WaitForSeconds(1.85f);
+        animator.applyRootMotion = false;
+        StartCoroutine(ReturnToInitialPosition(0.5f));
+        CC.HideChair();
+
+    }
+
+    private void WalKAround()
+    {
+        Debug.Log("Decided to walk around");
+    }
+
+    private void Checkthephone()
+    {
+        Debug.Log("Decided to check the phone");
+    }
+
+    private void Humm()
+    {
+        Debug.Log("Decided to Humm some music");
+    }
+
+    private void CleanThearea()
+    {
+        Debug.Log("Decided to clean the area");
+    }
+
+    private void playvideogame()
+    {
+        Debug.Log("Decided to play videogame");
+    }
+    private void listentomusic()
+    {
+        Debug.Log("Decided to listen to music ");
+    }
 
     // Unsubscribe from the event when this script is disabled or destroyed
     private void OnDisable()
@@ -538,6 +694,7 @@ public class spch : MonoBehaviour
             elapsedTime += Time.deltaTime;
             yield return null;
         }
+        animator.applyRootMotion = false;
         animator.SetTrigger("walkreverse");
         StartCoroutine(ReturnToInitialPosition(0.5f));
 
@@ -558,6 +715,8 @@ public class spch : MonoBehaviour
         gameobjecttomove.transform.position = initialPosition;
         animator.SetTrigger("Idle");
         gameobjecttomove.transform.rotation = Quaternion.Euler(0, 180, 0);
+        yield return new WaitForSeconds(2f);
+        animator.applyRootMotion = true;
     }
 
 
@@ -565,9 +724,6 @@ public class spch : MonoBehaviour
     {
         StartCoroutine(MoveToObject(gameobjecttomove, WeatherPosition, 0.55f));
     }
-
-
-
 
     public bool HandleServerBusy(string message)
     {

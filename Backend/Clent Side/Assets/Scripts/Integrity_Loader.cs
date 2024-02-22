@@ -20,6 +20,7 @@ public class Integrity_Loader : MonoBehaviour
     [SerializeField] Font defaultFont;
 
     public bool End_Flag = false;
+    public bool bypass;
     string[] assetPaths = new string[]
     {
         "Assets/Character",
@@ -36,13 +37,17 @@ public class Integrity_Loader : MonoBehaviour
     void Start()
     {
         ws = GameObject.FindGameObjectWithTag("Middleware").GetComponent<WsClient>();
-        CircleImg.fillAmount = 0f;
-        txtProgress.text = "0";
-        CircleImg.gameObject.SetActive(true);
-        txtProgress.gameObject.SetActive(true);
-        LoadText.gameObject.SetActive(true);
 
-        StartCoroutine(CheckInternetAndLoadAssets());
+        if(!bypass)
+        {
+            CircleImg.fillAmount = 0f;
+            txtProgress.text = "0";
+            CircleImg.gameObject.SetActive(true);
+            txtProgress.gameObject.SetActive(true);
+            LoadText.gameObject.SetActive(true);
+
+            StartCoroutine(CheckInternetAndLoadAssets());
+        }
     }
 
     IEnumerator CheckInternetAndLoadAssets()

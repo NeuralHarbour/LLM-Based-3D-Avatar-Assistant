@@ -23,6 +23,7 @@ public class waveform : MonoBehaviour
     spch speech;
     AudioSource _audioSource;
     AlarmController AC;
+    WorkoutManager WM;
 
     public int activeCharacterIndex = 0;
 
@@ -51,6 +52,12 @@ public class waveform : MonoBehaviour
     private float cooldownTimer = 0f;
     float animationDuration = 3.17f;
     float remainingTime;
+    private float endTime = 0f;
+    private float pauseStartTime = 0f;
+    private float pausedDuration = 0f;
+    float pausedTime = 0f;
+    private float startTime = 0f;
+    private float stoptime = 0f;
 
     [SerializeField] private KeyCode pushToTalkKey = KeyCode.Space;
 
@@ -71,9 +78,10 @@ public class waveform : MonoBehaviour
     private bool isRecording = false;
     private bool responseReceived = false;
     private bool waitingForResponse = false;
+    private bool haschangedoutfit = false;
     private bool isLooping = false;
     private bool isbusy = false;
-    public bool isWakeWordDetected = false;
+    public bool isWakeWordDetected;
     private bool hasPlayed = false;
     private bool isCooldown = false;
     bool isCharacterActive = false;
@@ -84,6 +92,7 @@ public class waveform : MonoBehaviour
 
     private readonly object responseLock = new object();
     private readonly object busyLock = new object();
+
     public GameObject AudioReact;
     public GameObject[] characters = new GameObject[] { };
 
@@ -92,7 +101,6 @@ public class waveform : MonoBehaviour
     public ParticleSystem particles;
     public ParticleSystem Entryparticles;
     public ParticleSystem Surroundparticles;
-    private bool haschangedoutfit = false;
 
     bool ended = false;
     bool hasExecuted = false;
@@ -102,6 +110,7 @@ public class waveform : MonoBehaviour
     public string language = "";
     public string txt = "";
     public static int CameraStatus = 0;
+
 
     Coroutine timerCoroutine;
     // Start is called before the first frame update
@@ -113,6 +122,7 @@ public class waveform : MonoBehaviour
         speech = GameObject.FindGameObjectWithTag("character").GetComponent<spch>();
         instance = GameObject.FindGameObjectWithTag("Speech").GetComponent<Spchinstance>();
         AC = GameObject.FindGameObjectWithTag("Alarm").GetComponent<AlarmController>();
+        WM = GetComponent<WorkoutManager>();
         IL = GetComponent<Integrity_Loader>();
 
         if (IL != null)
@@ -222,7 +232,6 @@ public class waveform : MonoBehaviour
         anim = characters[activeCharacterIndex].GetComponent<Animator>();
         if (anim != null)
         {
-            // Replace "ischanging" with the actual trigger name in your animator controller
             anim.SetTrigger("ischanging");
 
             yield return new WaitForSeconds(animationDuration / 2f);
@@ -246,6 +255,7 @@ public class waveform : MonoBehaviour
             anim = characters[activeCharacterIndex].GetComponent<Animator>();
             speech.UpdateActiveAnimator(anim, characters[activeCharacterIndex]);
 
+            WM.ReceiveActiveCharacterIndex(activeCharacterIndex);
             // Apply the normalized time to the new character's animation
             if (anim != null)
             {
@@ -258,6 +268,8 @@ public class waveform : MonoBehaviour
 
         // Reset the flag
         haschangedoutfit = false;
+        anim.SetTrigger("Idle");
+
     }
 
 
@@ -361,7 +373,11 @@ public class waveform : MonoBehaviour
             e.showEmission();
             if (characters.Length > 0)
             {
-                characters[activeCharacterIndex].SetActive(true);
+                if(!WM._isworkoutmode)
+                {
+                    characters[activeCharacterIndex].SetActive(true);
+                }
+                
             }
             if (haschangedoutfit)
             {
@@ -408,7 +424,35 @@ public class waveform : MonoBehaviour
                     Button.PlayOneShot(Buttonpress);
                 }
             }
+            if (isTimerRunning)
+            {
+                if(!isTimerPaused)
+                {
+                    remainingTime = Mathf.Max(endTime - Time.time + pausedTime, 0f);
 
+                    int hours = Mathf.FloorToInt(remainingTime / 3600);
+                    int minutes = Mathf.FloorToInt((remainingTime % 3600) / 60);
+                    int seconds = Mathf.FloorToInt(remainingTime % 60);
+                    string timeString = string.Format("{0:00}:{1:00}:{2:00}", hours, minutes, seconds);
+                    timerText.text = timeString;
+
+                    if (Time.time >= endTime)
+                    {
+                        if (Timer != null && timerCompletedSound != null)
+                        {
+                            Timer.PlayOneShot(timerCompletedSound);
+                        }
+                        else
+                        {
+                            Debug.LogWarning("AudioSource or AudioClip not assigned for timer completion sound!");
+                        }
+
+                        Debug.Log("Timer completed!");
+                        isTimerRunning = false;
+                        StartCoroutine(TimerDisappear());
+                    }
+                }
+            }
             if (isCooldown)
             {
                 cooldownTimer -= Time.deltaTime;
@@ -506,6 +550,8 @@ public class waveform : MonoBehaviour
         yield return new WaitForSeconds(1f);
         ended = true;
         anim.Play("Bow");
+        yield return new WaitForSeconds(5f);
+        anim.SetTrigger("Idle");
     }
     void submethod()
     {
@@ -771,7 +817,7 @@ public class waveform : MonoBehaviour
                     {
                         haschangedoutfit = true;
                     }
-                    else if (receivedText.StartsWith("set"))
+                    else if (receivedText.Contains("set"))
                     {
                         if (receivedText.Contains("timer") && !isTimerRunning)
                         {
@@ -782,18 +828,27 @@ public class waveform : MonoBehaviour
                             HandleAlarm(receivedText);
                         }
                     }
-                    else if (receivedText == "stop the timer" && isTimerRunning || isTimerPaused) {
-                        StopTimerCoroutine();
+                    else if (receivedText == "stop the timer" && isTimerRunning) {
                         Debug.Log("Timer stopped by user.");
+                        StopTimer();
                     }
                     else if (receivedText == "pause the timer" && isTimerRunning)
                     {
                         Debug.Log("Timer Paused");
                         PauseTimer();
                     }
-                    else if(receivedText == "resume the timer" && isTimerPaused)
+                    else if(receivedText == "Resume the timer" && isTimerPaused)
                     {
                         Debug.Log("Timer Resumed");
+                        ResumeTimer();
+                    }
+                    else if(receivedText.Contains("start"))
+                    {
+                        if(receivedText.Contains("workout") && receivedText.Contains("session"))
+                        {
+                            Debug.Log("Setting Up Workout mode");
+                            WM.StartWorkoutMode();
+                        }
                     }
                 }
                 else
@@ -825,6 +880,13 @@ public class waveform : MonoBehaviour
         }
     }
 
+    IEnumerator TimerDisappear()
+    {
+        yield return new WaitForSeconds(0.2f);
+        AC.PlayDisappearAnim();
+        yield return new WaitForSeconds(1f);
+        AC.HideGameObject();
+    }
     void HandleTimer(string receivedText)
     {
         Regex hourRegex = new Regex(@"(\d+)\s*hour(s)?", RegexOptions.IgnoreCase);
@@ -836,7 +898,7 @@ public class waveform : MonoBehaviour
 
         Debug.Log("Timer components: Hours = " + hour + ", Minutes = " + min + ", Seconds = " + sec);
         int durationInSeconds = hour * 3600 + min * 60 + sec;
-        StartTimerCoroutine(durationInSeconds);
+        StartTimer(durationInSeconds);
     }
 
     int ExtractTimeComponent(string receivedText, Regex regex)
@@ -853,6 +915,51 @@ public class waveform : MonoBehaviour
         return 0;
     }
 
+    public void StartTimer(float duration)
+    {
+        if (!isTimerRunning)
+        {
+            AC.ShowAlarm();
+            isTimerRunning = true;
+            float startTime = Time.time;
+            endTime = startTime + duration;
+            remainingTime = duration;
+            Debug.Log("Timer started for " + duration + " seconds");
+            AC.PlayFloatAnim();
+        }
+    }
+
+    void PauseTimer()
+    {
+        if (isTimerRunning && !isTimerPaused)
+        {
+            isTimerPaused = true;
+            pauseStartTime = Time.time;
+        }
+    }
+
+    void ResumeTimer()
+    {
+        if (isTimerPaused)
+        {
+            isTimerPaused = false;
+            pausedTime += Time.time - pauseStartTime;
+        }
+    }
+
+    void StopTimer()
+    {
+        isTimerRunning = false;
+        isTimerPaused = false;
+        remainingTime = 0f;
+        endTime = 0f;
+        pausedTime = 0f;
+        StartCoroutine(TimerDisappear());
+    }
+
+
+
+
     void HandleAlarm(string receivedText)
     {
         string[] words = receivedText.Split(' ');
@@ -867,11 +974,26 @@ public class waveform : MonoBehaviour
             {
                 int.TryParse(word.Replace("minute", "").Replace("minutes", ""), out min);
             }
-            else if (word.EndsWith("second") || word.EndsWith("seconds"))
+            else if (word.Equals("AM", StringComparison.OrdinalIgnoreCase))
             {
-                int.TryParse(word.Replace("second", "").Replace("seconds", ""), out sec);
+                if (hour == 12)
+                {
+                    hour = 0;
+                }
+            }
+            else if (word.Equals("PM", StringComparison.OrdinalIgnoreCase))
+            {
+                if (hour >= 1 && hour <= 11)
+                {
+                    hour += 12;
+                }
+                else if (hour == 12)
+                {
+                    
+                }
             }
         }
+
         ScheduleAlarm(hour, min, sec);
     }
 
@@ -886,110 +1008,6 @@ public class waveform : MonoBehaviour
         TimeSpan timeUntilAlarm = alarmTime - currentDate;
         StartCoroutine(WaitForAlarm(timeUntilAlarm.TotalSeconds));
     }
-
-    void StartTimerCoroutine(int duration)
-    {
-        if (timerCoroutine != null)
-        {
-            StopCoroutine(timerCoroutine);
-        }
-        timerCoroutine = StartCoroutine(StartTimer(duration));
-    }
-
-    void StopTimerCoroutine()
-    {
-        if (timerCoroutine != null)
-        {
-            StopCoroutine(timerCoroutine);
-            timerCoroutine = null;
-            AC.PlayDisappearAnim();
-            AC.HideGameObject();
-        }
-        else
-        {
-            if (language == "en")
-            {
-                txt = "Timer is not active";
-                instance.ReceiveMessage(txt);
-            }
-        }
-    }
-    void PauseTimer()
-    {
-        if (isTimerRunning && timerCoroutine != null)
-        {
-            isTimerPaused = true;
-            Debug.Log("Timer paused.");
-
-        }
-        else
-        {
-            if (language == "en")
-            {
-                txt = "Timer is not active";
-                instance.ReceiveMessage(txt);
-            }
-        }
-    }
-
-
-    void ResumeTimer()
-    {
-        if (isTimerRunning && timerCoroutine != null && isTimerPaused)
-        {
-            isTimerPaused = false;
-            Debug.Log("Timer resumed.");
-            StartCoroutine(StartTimer(remainingTime));
-        }
-    }
-
-
-
-    IEnumerator StartTimer(float duration)
-    {
-        AC.ShowAlarm();
-        yield return new WaitForSecondsRealtime(2f);
-        Debug.Log("Timer started for " + duration + " seconds");
-        isTimerRunning = true;
-        AC.PlayFloatAnim();
-
-        remainingTime = duration; // Store the remaining time
-
-        while (remainingTime > 0)
-        {
-            int hours = Mathf.FloorToInt(remainingTime / 3600);
-            int minutes = Mathf.FloorToInt((remainingTime % 3600) / 60);
-            int seconds = Mathf.FloorToInt(remainingTime % 60);
-            string timeString = string.Format("{0:00}:{1:00}:{2:00}", hours, minutes, seconds);
-            timerText.text = timeString;
-
-            if (!isTimerPaused)
-            {
-                yield return new WaitForSecondsRealtime(1f);
-                remainingTime -= 1f;
-            }
-            else
-            {
-                yield return null;
-            }
-        }
-
-        if (Timer != null && timerCompletedSound != null)
-        {
-            Timer.PlayOneShot(timerCompletedSound);
-        }
-        else
-        {
-            Debug.LogWarning("AudioSource or AudioClip not assigned for timer completion sound!");
-        }
-
-        Debug.Log("Timer completed!");
-        AC.PlayDisappearAnim();
-        isTimerRunning = false;
-        yield return new WaitForSecondsRealtime(0.5f);
-        AC.HideGameObject();
-    }
-
 
 
     IEnumerator WaitForAlarm(double secondsUntilAlarm)

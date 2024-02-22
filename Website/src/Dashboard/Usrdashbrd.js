@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import logo from '../Assets/EpsilonAI.png';
+import logo from '../Assets/Logo.png';
 import './dash.css';
 
 const Usrdashbrd = () => {
@@ -16,7 +16,7 @@ const Usrdashbrd = () => {
         <aside>
           <div className="top">
             <div className="logo">
-              <img src={logo} alt = ''/>
+              <img src={logo} alt='' />
             </div>
             <div className="close" id="close-btn">
               <span className='fa fa-times' />
@@ -99,7 +99,7 @@ const Usrdashbrd = () => {
 
 
             <div className='avatars'>
-              <span className='fa fa-user'/>
+              <span className='fa fa-user' />
               <div className="middle">
                 <div className="lef">
                   <h3>Avatars Added</h3>
@@ -107,7 +107,7 @@ const Usrdashbrd = () => {
                 </div>
                 <div className="progress">
                   <svg>
-                    <circle cx = '38' cy='38' r='36'/>
+                    <circle cx='38' cy='38' r='36' />
                   </svg>
                   <div className='number'>
                     <p>5%</p>
@@ -119,7 +119,7 @@ const Usrdashbrd = () => {
 
 
             <div className='skills'>
-              <span className='fa fa-running'/>
+              <span className='fa fa-running' />
               <div className="middle">
                 <div className="lef">
                   <h3>Skills Added</h3>
@@ -127,7 +127,7 @@ const Usrdashbrd = () => {
                 </div>
                 <div className="progress">
                   <svg>
-                    <circle cx = '38' cy='38' r='36'/>
+                    <circle cx='38' cy='38' r='36' />
                   </svg>
                   <div className='number'>
                     <p>5%</p>
@@ -138,7 +138,7 @@ const Usrdashbrd = () => {
             </div>
 
             <div className='devices'>
-              <span className='fa fa-mobile'/>
+              <span className='fa fa-mobile' />
               <div className="middle">
                 <div className="lef">
                   <h3>Linked Devices</h3>
@@ -146,7 +146,7 @@ const Usrdashbrd = () => {
                 </div>
                 <div className="progress">
                   <svg>
-                    <circle cx = '38' cy='38' r='36'/>
+                    <circle cx='38' cy='38' r='36' />
                   </svg>
                   <div className='number'>
                     <p>5%</p>
@@ -203,19 +203,19 @@ const Usrdashbrd = () => {
         </main>
         <div className="right">
           <div className="top">
-            <button id = "menu-btn">
-              <span className='fas fa-bars'/>
+            <button id="menu-btn">
+              <span className='fas fa-bars' />
             </button>
             <div className="theme-toggler">
-              <span className='fa fa-sun'/>
-              <span className='fa fa-moon'/>
+              <span className='fa fa-sun' />
+              <span className='fa fa-moon' />
             </div>
             <div className="profile">
               <div className="info">
                 <p>Hey, <b>ABC</b></p>
               </div>
               <div className='profile-photo'>
-                <img src = 'https://img.freepik.com/free-vector/illustration-businessman_53876-5856.jpg?w=740&t=st=1691049849~exp=1691050449~hmac=24fbf4dbf9c89ff81dd8882c45884a954ce393a8b022761041164564aa013c2a' alt =''></img>
+                <img src='https://img.freepik.com/free-vector/illustration-businessman_53876-5856.jpg?w=740&t=st=1691049849~exp=1691050449~hmac=24fbf4dbf9c89ff81dd8882c45884a954ce393a8b022761041164564aa013c2a' alt=''></img>
               </div>
             </div>
           </div>
@@ -224,7 +224,7 @@ const Usrdashbrd = () => {
             <div className="updates">
               <div className="update">
                 <div className='profile-photo'>
-                  <img src = 'https://img.freepik.com/free-vector/illustration-user-avatar-icon_53876-5907.jpg?w=740&t=st=1691050160~exp=1691050760~hmac=aa466d7e93ede4aca809ce83453dcce0e500af3be6e53bf263ff487e5bbf4ef6' alt = ''/>
+                  <img src='https://img.freepik.com/free-vector/illustration-user-avatar-icon_53876-5907.jpg?w=740&t=st=1691050160~exp=1691050760~hmac=aa466d7e93ede4aca809ce83453dcce0e500af3be6e53bf263ff487e5bbf4ef6' alt='' />
                 </div>
                 <div className='message'>
                   <p>Lorem Ipsum Dolor Sit Amet</p>
@@ -233,7 +233,7 @@ const Usrdashbrd = () => {
               </div>
               <div className="update">
                 <div className='profile-photo'>
-                  <img src = 'https://img.freepik.com/free-vector/illustration-user-avatar-icon_53876-5907.jpg?w=740&t=st=1691050160~exp=1691050760~hmac=aa466d7e93ede4aca809ce83453dcce0e500af3be6e53bf263ff487e5bbf4ef6' alt = ''/>
+                  <img src='https://img.freepik.com/free-vector/illustration-user-avatar-icon_53876-5907.jpg?w=740&t=st=1691050160~exp=1691050760~hmac=aa466d7e93ede4aca809ce83453dcce0e500af3be6e53bf263ff487e5bbf4ef6' alt='' />
                 </div>
                 <div className='message'>
                   <p>Lorem Ipsum Dolor Sit Amet</p>
@@ -242,7 +242,7 @@ const Usrdashbrd = () => {
               </div>
               <div className="update">
                 <div className='profile-photo'>
-                  <img src = 'https://img.freepik.com/free-vector/illustration-user-avatar-icon_53876-5907.jpg?w=740&t=st=1691050160~exp=1691050760~hmac=aa466d7e93ede4aca809ce83453dcce0e500af3be6e53bf263ff487e5bbf4ef6' alt = ''/>
+                  <img src='https://img.freepik.com/free-vector/illustration-user-avatar-icon_53876-5907.jpg?w=740&t=st=1691050160~exp=1691050760~hmac=aa466d7e93ede4aca809ce83453dcce0e500af3be6e53bf263ff487e5bbf4ef6' alt='' />
                 </div>
                 <div className='message'>
                   <p>Lorem Ipsum Dolor Sit Amet</p>
