@@ -229,32 +229,6 @@ public class spch : MonoBehaviour
                 }
                 playweatheranim();
             }
-            if (!string.IsNullOrEmpty(currentEmotion))
-            {
-                Debug.Log("Current emotion in Update(): " + currentEmotion);
-
-                switch (currentEmotion)
-                {
-                    case "['joy']":
-                        PlayHappyExpression();
-                        break;
-                    case "['sadness']":
-                        PlaySadExpression();
-                        break;
-                    case "['anger']":
-                        PlayAngryExpression();
-                        break;
-                    case "['surprised']":
-                        PlaySurprisedExpression();
-                        break;
-                    default:
-                        PlayNeutralExpression();
-                        break;
-                }
-
-                // Reset the currentEmotion variable after using it
-                currentEmotion = "";
-            }
             /*
             if (receivedQuestion)
             {
@@ -393,79 +367,76 @@ public class spch : MonoBehaviour
     // Handle the received message
     public void HandleMessageReceived(string message)
     {
+        // Initialize variables
+        string msg = string.Empty;
+        bool shouldSpeak = false;
 
-        int startIndex = message.IndexOf('[');
-        int endIndex = message.LastIndexOf(']');
-        string emotion = string.Empty;
+        // Set the whole message
+        msg = message.Trim();
 
-        if (startIndex != -1 && endIndex != -1)
-        {
-            emotion = message.Substring(startIndex, endIndex - startIndex + 1).Trim();
-            msg = message.Substring(0, startIndex).Trim();
-        }
-        else
-        {
-            msg = message.Trim(); // Set the whole message if no brackets are found
-        }
+        // Set the flag to indicate that speech should be executed
+        shouldSpeak = true;
 
-        shouldSpeak = true; // Set the flag to indicate that speech should be executed
+        // Call the ReceiveMessage method
         instance.ReceiveMessage(msg);
 
+        // Check if the message ends with a question mark
         bool isQuestion = msg.EndsWith("?");
 
         if (isQuestion)
         {
-            Debug.Log("Recieved a Question");
+            Debug.Log("Received a Question");
             //receivedQuestion = true;
         }
 
-
+        // Handle server busyness
         if (HandleServerBusy(message))
         {
             OnServerBusy?.Invoke();
         }
 
+        // Call various methods to handle greetings, time-related queries, weather queries, etc.
         GreetCheck(message);
         TimeGreetCheck(message);
         CheckTime(message);
         CheckDate(message);
         CheckDay(message);
         CheckWeather(message);
-        Emotion(emotion);
     }
+
 
     public void Emotion(string emotion)
     {
         currentEmotion = emotion.ToLower();
     }
-    private void PlayHappyExpression()
+    public void PlayHappyExpression()
     {
         Debug.Log("Playing happy animation");
         animator.SetTrigger("Joy");
         StartCoroutine(ReturnToNeutralAfterDelay());
     }
 
-    private void PlaySadExpression()
+    public void PlaySadExpression()
     {
         Debug.Log("Playing sad animation");
         animator.SetTrigger("Sad");
         StartCoroutine(ReturnToNeutralAfterDelay());
     }
 
-    private void PlayAngryExpression()
+    public void PlayAngryExpression()
     {
         Debug.Log("Playing angry animation");
         animator.SetTrigger("Angry");
         StartCoroutine(ReturnToNeutralAfterDelay());
     }
 
-    private void PlaySurprisedExpression()
+    public void PlaySurprisedExpression()
     {
         Debug.Log("Playing surprise animation");
         animator.SetTrigger("surprised");
         StartCoroutine(ReturnToNeutralAfterDelay());
     }
-    private void PlayNeutralExpression()
+    public void PlayNeutralExpression()
     {
         animator.SetTrigger("DefaultExp");
     }

@@ -95,6 +95,7 @@ namespace UniVRM10
             {
                 if (m_runtime == null)
                 {
+                    if (this == null) throw new MissingReferenceException("instance was destroyed");
                     m_runtime = new Vrm10Runtime(this, m_useControlRig);
                 }
                 return m_runtime;
@@ -138,7 +139,11 @@ namespace UniVRM10
 
         private void OnDestroy()
         {
-            Runtime.Dispose();
+            if (m_runtime != null)
+            {
+                m_runtime.Dispose();
+                m_runtime = null;
+            }
         }
 
         private void OnDrawGizmosSelected()
@@ -156,6 +161,11 @@ namespace UniVRM10
 
         public bool TryGetBoneTransform(HumanBodyBones bone, out Transform t)
         {
+            if (Humanoid == null)
+            {
+                t = null;
+                return false;
+            }
             t = Humanoid.GetBoneTransform(bone);
             if (t == null)
             {

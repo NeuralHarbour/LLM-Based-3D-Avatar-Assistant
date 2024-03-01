@@ -18,12 +18,14 @@ public class Spchinstance : MonoBehaviour
     public TTSSpeaker speaker_en;
     private bool shouldspeak;
     waveform wv;
+    spch facialexpressions;
     int SpeakerId = 3;
     // Start is called before the first frame update
     void Start()
     {
         TTS.Init();
         wv = GameObject.FindGameObjectWithTag("waveform").GetComponent<waveform>();
+        facialexpressions = GameObject.FindGameObjectWithTag("character").GetComponent<spch>();
     }
 
 
@@ -36,7 +38,8 @@ public class Spchinstance : MonoBehaviour
             Debug.Log("LANGUAGE OF TTS : " + x);
             if (x == "en" || x == "te")
             {
-                TTS.SayAsync(final_message, speaker_en);
+                final_message = ApplySSMLTags(final_message);
+                TTS.Say(final_message,speaker_en,TextType.SSML);
             }
             else if(x == "ja")
             {
@@ -72,5 +75,59 @@ public class Spchinstance : MonoBehaviour
         }
         Debug.Log("MESSAGE RECIEVED IN INSTANCE : "+final_message);
     }
+
+    string ApplySSMLTags(string text)
+    {
+        // Define SSML tags for emotions
+        Dictionary<string, string> emotionTags = new Dictionary<string, string>
+        {
+            {"['surprise']", "<prosody pitch='high' contour='surprise' volume='soft' rate='slow'>"},
+            {"['joy']", "<prosody pitch='medium' contour='falling' volume='medium' rate='medium'>"},
+            {"['fear']", "<prosody pitch='low' contour='rising' volume='medium' rate='medium'>"},
+            {"['sadness']", "<prosody pitch='low' contour='falling' volume='soft' rate='slow'>"},
+            {"['shame']", "<prosody pitch='medium' contour='falling' volume='soft' rate='medium'>"},
+            {"['anger']", "<prosody pitch='high' contour='rising' volume='loud' rate='slow'>"},
+            {"['neutral']", "<prosody volume='medium'>"}
+        };
+
+
+        // Iterate through emotion tags and apply SSML tags
+        foreach (var emotionTag in emotionTags)
+        {
+            if (text.Contains(emotionTag.Key))
+            {
+                text = text.Replace(emotionTag.Key, emotionTag.Value);
+                TriggerFacialExpression(emotionTag.Key);
+            }
+        }
+
+        // Add closing tags
+        text += "</prosody>";
+
+        return text;
+    }
+
+    void TriggerFacialExpression(string emotion)
+    {
+        switch (emotion)
+        {
+            case "['joy']":
+                facialexpressions.PlayHappyExpression();
+                break;
+            case "['sadness']":
+                facialexpressions.PlaySadExpression();
+                break;
+            case "['anger']":
+                facialexpressions.PlayAngryExpression();
+                break;
+            case "['surprise']":
+                facialexpressions.PlaySurprisedExpression();
+                break;
+            default:
+                facialexpressions.PlayNeutralExpression();
+                break;
+        }
+    }
+
 
 }
