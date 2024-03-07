@@ -7,6 +7,8 @@ import About from './About/about';
 import Services from "./Services/Services";
 import Contact from "./contact/Contact";
 import Footer from "./Footer/Footer";
+import gsap from 'gsap';
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 function App() {
 
   return (
@@ -18,7 +20,6 @@ function App() {
             <About />
             <Services />
             <Contact />
-            <Footer />
           </>} />
           <Route path='/Login' element={<Login />} />
           <Route path='/Register' element={<Register />} />

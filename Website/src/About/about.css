@@ -6,15 +6,37 @@
     margin: 0;
 }
 
+#container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+
 .about {
+    flex: 1;
+    /* Take up remaining space */
+    min-width: 100%;
+    /* Ensure full width */
     display: grid;
     grid-template-columns: 1fr 1fr;
-    min-height: 90vh;
-    width: 100%;
-    margin: 0 0;
+    min-height: 100vh;
     background-color: #2d2a35;
     overflow: hidden;
 }
+
+.animefy {
+    flex: 1;
+    /* Take up remaining space */
+    min-width: 100%;
+    /* Ensure full width */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 90vh;
+    background-color: #965fd4;
+    overflow: hidden;
+}
+
 
 .image {
     margin-top: 80px;
@@ -57,7 +79,6 @@
     line-height: 1.7;
     font-size: 18px;
 }
-
 
 /*****************/
 
