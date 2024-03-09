@@ -1,19 +1,20 @@
-import React, { useRef } from 'react';
-import gsap from 'gsap';
-import ScrollTrigger from 'gsap/ScrollTrigger';
-import { AboutImgAnim, AboutTextAnim, AnimefyImgAnim, AnimefyTextAnim } from "../Animation";
-import { useScroll } from "../useScroll";
+import React, { useRef, useEffect } from 'react';
 import { motion } from "framer-motion";
 import './about.css';
+import gsap from 'gsap';
+import ScrollTrigger from 'gsap/ScrollTrigger'; // Importing ScrollTrigger
+import { AboutImgAnim, AboutTextAnim, AnimefyImgAnim, AnimefyTextAnim } from "../Animation";
+import { useScroll } from "../useScroll";
 import '../Animefy/Animefy.css';
-
-gsap.registerPlugin(ScrollTrigger);
 
 const About = () => {
     const containerRef = useRef();
     const [element1, controls1] = useScroll();
     const [element2, controls2] = useScroll();
-    React.useLayoutEffect(() => {
+
+    useEffect(() => {
+        gsap.registerPlugin(ScrollTrigger); // Registering ScrollTrigger plugin locally
+
         const ctx = gsap.context(() => {
             const section1 = document.getElementById('section1');
             const section2 = document.getElementById('section2');
@@ -34,7 +35,6 @@ const About = () => {
 
         return () => ctx.revert();
     }, []);
-
 
     return (
         <main id="container" ref={containerRef}>

@@ -1,61 +1,102 @@
+document.addEventListener("DOMContentLoaded", () => {
+    //INITIAL SETUP
+    const titles = Array.prototype.slice.call(
+        document.querySelectorAll(".project-title")
+    );
 
-import { gsap } from "gsap";
-import { ScrollScene } from 'scrollscene';
+    //PAGE LOAD
+    const loadingAnim = new gsap.timeline();
 
+    loadingAnim.fromTo(".swiper-wrapper.is-main", { y: "-500%" }, { y: "0%" });
+    loadingAnim.restart();
 
-// Register gsap effect
-// --------------------------------
-gsap.registerEffect({
-    name: "scaleDown",
-    effect: (targets, config) => {
-        return gsap.to(targets, {
-            ease: config.ease,
-            scale: .7,
-            y: -20,
+    //FUNCTIONS
+    const updateProject = (idx) => {
+        titles.forEach((element) => {
+            element.classList.remove("is-active");
         });
-    },
-    defaults: {
-        ease: 'power1.out'
-    },
-    extendTimeline: true
-});
 
+        titles[idx].classList.add("is-active");
 
-// Creating a card scene
-// --------------------------------
-function CreateCardsScene(el) {
-    return new ScrollScene({
-        triggerElement: el.nextElementSibling,
-        offset: -150,
-        triggerHook: .5,
-        gsap: {
-            timeline: stackedCardsTl(el),
+        //update video
+        updateVideo(idx);
+
+        //update live link
+        const projectLink = titles[idx].querySelector(".live-link").innerHTML;
+        document.querySelector(".project-link").setAttribute("href", projectLink);
+
+        //update banner
+        document.querySelector(".banner-link").innerText = projectLink;
+        document.querySelector(".banner-heading").innerText = titles[
+            idx
+        ].querySelector("[project-title]").innerHTML;
+    };
+
+    const updateVideo = (idx) => {
+        //enter loading state
+        const videoComponent = document.querySelector(".video_component");
+        videoComponent.classList.add("is-loading");
+
+        const videoEmbed = document.querySelector(".video-embed video");
+        const videoLink = titles[idx].querySelector(".video-link").innerHTML;
+        videoEmbed.setAttribute("src", videoLink);
+
+        videoEmbed.addEventListener("canplay", (e) =>
+            videoComponent.classList.remove("is-loading")
+        );
+    };
+
+    //SLIDER
+    const projectsSwiper = new Swiper(".swiper.is-main", {
+        direction: "vertical",
+        loop: false,
+        mousewheel: true,
+        keyboard: true,
+        centeredSlides: true,
+        effect: "slide",
+        grabCursor: true,
+        spaceBetween: 150,
+        speed: 1000,
+        slideActiveClass: "is-active",
+        navigation: {
+            nextEl: document.querySelector(".swiper-next"),
+            prevEl: document.querySelector(".swiper-prev")
         },
-        duration: '100%',
-    })
-}
+        on: {
+            init: function () {
+                updateProject(0);
+            }
+        }
+    });
 
-// Scale down timeLine
-// --------------------------------
-function stackedCardsTl(el) {
-    const timeline = gsap.timeline({ paused: true });
-    timeline
-        .addLabel('in')
-        .scaleDown(el)
-    return timeline;
-}
+    projectsSwiper.on("slideChange", () => {
+        updateProject(projectsSwiper.activeIndex);
+    });
 
+    //TITLES INTERACTION
+    titles.forEach((element) => {
+        element.addEventListener("mouseenter", () => {
+            projectsSwiper.slideTo(titles.indexOf(element), 1000);
+        });
+    });
 
-// Creating scens and binding tweens to all cards
-// ------------------------------------------------
-function stackedCards(cardClassName) {
-    const cards = document.querySelectorAll(cardClassName);
-    for (let index = 0; index < cards.length - 1; index++) {
-        CreateCardsScene(cards[index]);
-    }
-}
+    const rotateSwiper = new gsap.timeline({
+        defaults: { duration: 1, ease: "expo.out" }
+    });
+    rotateSwiper.paused(true);
 
+    rotateSwiper.to(".swiper-slider_component", {
+        rotationY: "0deg",
+        rotationZ: "1deg"
+    });
 
-// Stacked cards init
-// -----------------------------
-stackedCards('.card');
+    document.querySelector(".titles-list").addEventListener("mouseenter", () => {
+        rotateSwiper.timeScale(1);
+        rotateSwiper.restart();
+    });
+
+    document.querySelector(".titles-list").addEventListener("mouseleave", () => {
+        rotateSwiper.timeScale(1.5);
+        rotateSwiper.reverse();
+    });
+});

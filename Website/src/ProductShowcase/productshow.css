@@ -1,0 +1,112 @@
+.bx {
+    font-family: "Neue Montreal";
+    height: 100%;
+    position: relative;
+}
+
+.content-holder h1 {
+    font-size: 80px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+
+.content-holder p {
+    font-size: 18px;
+    font-weight: 400;
+    text-transform: 1.5;
+    letter-spacing: 50%;
+}
+
+.bgk {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.header {
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    height: 100%;
+    width: 100%;
+    z-index: 2;
+}
+
+.letters {
+    flex: 1;
+    display: flex;
+    text-transform: uppercase;
+}
+
+.letters>div {
+    flex: 1;
+    font-size: 18vw;
+    font-weight: 400;
+    color: #000;
+    text-align: center;
+}
+
+.website-content {
+    position: relative;
+    top: 0;
+    width: 100%;
+    min-height: 100vh;
+}
+
+.img-holder {
+    position: relative;
+    top: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: #fff;
+    clip-path: polygon(37.5% 20%, 62.5% 20%, 62.5% 80%, 37.5% 80%);
+    transform: rotate(30deg);
+}
+
+.img-holder img {
+    position: relative;
+    transform: scale(1);
+}
+
+.content-holder {
+    top: -5px;
+    width: 100%;
+    background: #000;
+    color: #fff;
+    padding: 1em;
+}
+
+.row {
+    margin: 1em 1em;
+}
+
+.img-prod {
+    position: absolute;
+    width: 200px;
+    height: 300px;
+
+}
+
+.row:nth-child(2) .img-prod {
+    position: relative;
+    left: 50%;
+}
+
+.row:nth-child(3) .img-prod {
+    position: relative;
+    left: 15%;
+}
+
+.row:nth-child(4) .img-prod {
+    position: relative;
+    left: 70%;
+}
+
+.row:nth-child(6) p {
+    position: relative;
+    left: 30%;
+    margin: 4em 0;
+}

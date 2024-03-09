@@ -6,6 +6,7 @@ import Usrdashbrd from './Dashboard/Usrdashbrd';
 import About from './About/about';
 import Services from "./Services/Services";
 import Contact from "./contact/Contact";
+import Productshow from "./ProductShowcase/Prouductshow";
 import Footer from "./Footer/Footer";
 import gsap from 'gsap';
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -17,9 +18,6 @@ function App() {
         <Routes>
           <Route path="/" element={<>
             <Lander />
-            <About />
-            <Services />
-            <Contact />
           </>} />
           <Route path='/Login' element={<Login />} />
           <Route path='/Register' element={<Register />} />
