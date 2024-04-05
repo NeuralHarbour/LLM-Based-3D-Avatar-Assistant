@@ -2,8 +2,10 @@
   "ExpandedNodes": [
     "",
     "\\lang_modules",
+    "\\lang_modules\\en_module_files",
+    "\\lang_modules\\global_files",
     "\\PresetResponses"
   ],
-  "SelectedNode": "\\server.py",
+  "SelectedNode": "\\weather.py",
   "PreviewInSolutionExplorer": false
 }

@@ -2,7 +2,8 @@ from pickle import GET
 from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException,StaleElementReferenceException
+
 import sys
 import time
 from datetime import datetime,timedelta
@@ -50,7 +51,7 @@ def pause_and_play():
     driver.implicitly_wait(1) 
     pause_video.click()
 
-def get_time():
+def get_time(play_hits=False):
     stop_flag = False
     while not stop_flag:
         try:
@@ -67,11 +68,22 @@ def get_time():
                 if current_time_obj == (total_duration_obj - timedelta(seconds=1)):
                     stop_flag = True
             if stop_flag:
-                stop()
+                if not play_hits:
+                    stop()
+                break
             
         except NoSuchElementException:
             sys.stdout.write("\rTime element not found.")
             sys.stdout.flush()
+        
+        except StaleElementReferenceException:
+            sys.stdout.write("\rStale element reference. Re-locating the element.")
+            sys.stdout.flush()
+            continue
+        
+        except Exception as e:
+            print(f"Error occurred: {e}")
+
 
 def resume_play():
     pause_video = driver.find_element(By.XPATH,'/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-player-bar/div[1]/div/tp-yt-paper-icon-button[3]')
@@ -86,19 +98,38 @@ def stop():
     except Exception as e:
         print(f"Error occurred while stopping playback: {e}")
 
+def playhits(artist_name):
+    try:
+        url = f"https://music.youtube.com/search?q={artist_name}"
+        driver.get(url)
+        driver.implicitly_wait(3) 
+        radio_button = driver.find_element(By.XPATH, '//*[@id="actions"]/yt-button-renderer[1]/yt-button-shape/button')
+        radio_button.click()
+
+        get_time(play_hits=True)
+        
+    except Exception as e:
+        print(f"Error occurred while playing hits of {artist_name}: {e}")
+
+
 if __name__ == "__main__": 
         print("Enter the name of song") 
         while True: 
             uinput = str(input()) 
             if uinput.split(" ", 1)[0] == "play": 
-                songName = uinput.split(" ", 1)[1] 
-                stream(songName)
+                if uinput.startswith("play the hits of"):
+                    artist_name = uinput.split("play the hits of ", 1)[1] 
+                    playhits(artist_name)
+                else:
+                    songName = uinput.split(" ", 1)[1] 
+                    stream(songName)
             elif uinput == "pause": 
                 pause_and_play();
             elif uinput == "resume":
                 resume_play();
             elif uinput == "stop": 
-                stop() 
+                stop()
+                
             else: 
               print("invalid command")
             time_thread = threading.Thread(target=get_time)

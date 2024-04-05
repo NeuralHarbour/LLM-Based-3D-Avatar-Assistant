@@ -1,0 +1,204 @@
+.w-layout-grid {
+    display: -ms-grid;
+    display: grid;
+    grid-auto-columns: 1fr;
+    -ms-grid-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
+    -ms-grid-rows: auto auto;
+    grid-template-rows: auto auto;
+    grid-row-gap: 16px;
+    grid-column-gap: 16px;
+}
+
+h2 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 2rem;
+    line-height: 1.2;
+    font-weight: 400;
+}
+
+._100vh {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    height: 100vh;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    margin-bottom: 5rem;
+}
+
+.grid {
+    width: 100%;
+    max-width: 1440px;
+    grid-column-gap: 2em;
+    grid-row-gap: 2em;
+}
+
+.div-block {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+}
+
+.box {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    padding: 2.5em;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    border-radius: 5px;
+    background-color: #fff;
+    box-shadow: 0 0 10px -2px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+}
+
+.box:hover {
+    transform: scale(1.125);
+    border-color: rgba(255, 255, 255, 0.9);
+    filter: drop-shadow(0 10px 5px rgba(0, 0, 0, 0.125));
+    transition: all .3s ease;
+}
+
+.div-block-3 {
+    margin-right: 2em;
+    margin-left: 2em;
+}
+
+.icon {
+    width: 48px;
+    height: 48px;
+}
+
+.mask {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    overflow: hidden;
+    width: 60px;
+    height: 32px;
+    -webkit-box-pack: start;
+    -webkit-justify-content: flex-start;
+    -ms-flex-pack: start;
+    justify-content: flex-start;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -o-object-fit: contain;
+    object-fit: contain;
+}
+
+.mt {
+    max-width: 1600px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.body {
+    font-family: 'DM Sans', sans-serif;
+}
+
+.page-wrapper {
+    margin-right: auto;
+    margin-left: auto;
+    padding-right: 2.5em;
+    padding-bottom: 0px;
+    padding-left: 2.5em;
+}
+
+.margin-bottom.margin-medium {
+    margin-bottom: 2em;
+}
+
+._w-footer {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    margin-top: 30px;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+    -ms-flex-pack: justify;
+    justify-content: space-between;
+}
+
+@media screen and (max-width: 991px) {
+    .grid {
+        grid-column-gap: 1em;
+        grid-row-gap: 1em;
+    }
+
+    .box {
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+        -webkit-flex-direction: column;
+        -ms-flex-direction: column;
+        flex-direction: column;
+        -webkit-box-align: start;
+        -webkit-align-items: flex-start;
+        -ms-flex-align: start;
+        align-items: flex-start;
+    }
+
+    .div-block-3 {
+        margin-right: 0.125em;
+        margin-left: 0em;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    h2 {
+        font-size: 1.5rem;
+        line-height: 1.2;
+    }
+
+    .box {
+        padding: 2em;
+    }
+
+    .icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .subtitle {
+        font-size: 0.7rem;
+    }
+}
+
+@media screen and (max-width: 479px) {
+    ._100vh {
+        height: auto;
+    }
+
+    .grid {
+        -ms-grid-columns: 1fr;
+        grid-template-columns: 1fr;
+    }
+
+    .div-block-3 {
+        margin-right: 0em;
+    }
+}
