@@ -38,7 +38,9 @@ import jp_module
 import en_module
 #-------------------------------------#
 
-
+already_initialized = False
+initial_message = "None"
+initial_response = "None"
 ############### MAIN #######################
 async def on_message(websocket):
     async for message in websocket:
@@ -129,13 +131,19 @@ async def handle_received_message(websocket, received_message):
     print("MESSAGE SET AS NONE")
 
 async def main():
+    global already_initialized
     server = await websockets.serve(lambda ws, path: on_message(ws), "localhost", 8080)
     print('Server started')
     print('Listening on 8080')
+    if not already_initialized:
+        already_initialized = True
+        await en_module.log_conversation(initial_message, initial_response)
+    else:
+        print("Conversation log already initialized.")
     await server.wait_closed()
 
 if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(main())
+    asyncio.run(main())
 
 
 

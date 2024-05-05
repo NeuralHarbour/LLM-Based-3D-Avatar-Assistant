@@ -1,8 +1,11 @@
 import sys
 sys.path.append('../en_module')
 import en_module as en
+import os
 from datetime import timedelta,datetime
-import global_files.global_contstants as gb
+script_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(script_dir, '..', 'global_files'))
+import global_contstants as gb
 
 async def handle_current_date(message,websocket,callback):
     en.conversation_state = "current date"

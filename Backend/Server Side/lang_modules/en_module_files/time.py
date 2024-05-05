@@ -25,6 +25,8 @@ async def handle_current_time_request(message, websocket, callback):
         start_time = time.time()
         print("No message received within 5 seconds")
         x = await en.get_conversation_state(en.conversation_state, time_response)
+        message = ""
+        await en.log_conversation(message,x)
         await websocket.send(str(x))
         print(en.conversation_state)
     en.time_flag = False

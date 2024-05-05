@@ -1,4 +1,6 @@
-import lang_modules.en_module as en
+import sys
+sys.path.append('../en_module_files')
+import en_module as en
 import re
 async def send_response(message,reply):
     await en.log_conversation(message, reply)
