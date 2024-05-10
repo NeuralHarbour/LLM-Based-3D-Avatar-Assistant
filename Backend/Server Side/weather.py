@@ -2,23 +2,28 @@ import geocoder
 import requests
 import yaml
 import random
+import sys
+sys.path.append('en_module_files')
+import en_module as en
 from io import StringIO
 
 API_KEY = open("weather_api_key.txt", "r").read()
 degree_symbol = "\u00b0"
 
 
-def get_user_city():
-    try:
-        location = geocoder.ip("me")
-        if location.city:
-            return location.city
-        else:
-            return "City not found"
-
-    except Exception as e:
-        print("Error occurred:", e)
-        return None
+def get_user_city(city_name=None):
+    if city_name:
+        return city_name
+    else:
+        try:
+            location = geocoder.ip("me")
+            if location.city:
+                return location.city
+            else:
+                return "City not found"
+        except Exception as e:
+            print("Error occurred:", e)
+            return None
 
 
 def kelvin_to_celsius_fahrenheit(kelvin):
@@ -284,7 +289,13 @@ def main_stuff():
     temperature_category = None
     wind_category = None
 
-    user_city = get_user_city()
+    city_name = en.place_name
+    print("CITY_NAME : ",city_name)
+    if city_name is not None:
+        user_city = get_user_city(city_name)
+    else:
+        user_city = get_user_city(city_name=None)
+
     if user_city:
         CITY = user_city
 

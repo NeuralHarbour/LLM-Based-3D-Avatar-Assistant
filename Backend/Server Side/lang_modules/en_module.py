@@ -16,6 +16,7 @@
 
 
 import asyncio
+from xml.dom.minidom import Entity
 import websockets
 import random
 import yaml
@@ -36,7 +37,7 @@ from langchain.memory import ChatMessageHistory
 
 import warnings
 import re
-from weather import main_stuff
+from weather import main_stuff,get_user_city
 from spot import stream, pause_and_play, resume_play, stop,stream_album
 from datetime import timedelta
 import time
@@ -59,6 +60,7 @@ import en_module_files.time as tm
 import en_module_files.date as dt
 import en_module_files.day as day
 import global_files.global_contstants as gb
+import global_files.music_identifier as mi
 import spacy
 from ytmusicapi import YTMusic
 
@@ -104,6 +106,7 @@ conversation_state = None
 x = None
 previous_conversation_state = None
 received_message = None
+place_name = None
 
 ############## GLOBAL BOOLEAN ###################
 
@@ -136,6 +139,8 @@ play_flag = False
 play_album = False
 song_enquiry = False
 special_music_case1 = False
+repeat_flag = False
+silent_flag = False
 
 #################################################
 current_time_prompt = datetime.now().strftime("%I:%M %p")
@@ -564,6 +569,10 @@ async def process_en_message(msg,websocket,callback= None):
     global is_paused
     global song_enquiry
     global special_music_case1
+    global place_name
+    global repeat_flag
+    global silent_flag
+
     #######################
 
     examples = [
@@ -666,6 +675,18 @@ async def process_en_message(msg,websocket,callback= None):
     if long_no_message:
         await qn.handle_no_long_message(message,message_lower, websocket)
 
+    
+    if expecting_song_name:
+        check_song = [f"Identify if the message is a song name or not ? Reply with a 'yes' if it's a song name else 'no' message:{message}"]
+        check_result = llm._generate(check_song)
+        check_response = check_result.generations[0][0].text.lower()
+        if check_response == 'yes':
+            print("YES !!!!!!!!")
+            play_flag = True
+        else:
+            print("NOOOOO !!!!")
+            expecting_song_name = False
+
     #-------------------------------------------------------------------------------------------------------#
     ########################################## PRESET COMMANDS ##############################################
 
@@ -676,659 +697,713 @@ async def process_en_message(msg,websocket,callback= None):
     intent_response = intent_result.generations[0][0].text.lower()
     print("LLM INTENT RESULT : ",intent_response)
 
-    if 'time' in words or time_flag:
-        tokens = nltk.word_tokenize(message)
-        tagged = nltk.pos_tag(tokens)
-        time_index = [i for i, word in enumerate(tokens) if word.lower() == 'time']
-        play_flag = False
-        if time_index:
-            time_pos_tag = tagged[time_index[0]][1]
-            if time_pos_tag.startswith('NN'):
-                if len(words) > 1 and any(word in ['now', 'current', 'present', 'today'] for word in words) or time_flag:
-                    await tm.handle_current_time_request(message, websocket, callback)
+    if not repeat_flag:
+        if 'time' in words or time_flag:
+            tokens = nltk.word_tokenize(message)
+            tagged = nltk.pos_tag(tokens)
+            time_index = [i for i, word in enumerate(tokens) if word.lower() == 'time']
+            play_flag = False
+            expecting_song_name = False
+            if time_index:
+                time_pos_tag = tagged[time_index[0]][1]
+                if time_pos_tag.startswith('NN'):
+                    if len(words) > 1 and any(word in ['now', 'current', 'present', 'today'] for word in words) or time_flag:
+                        await tm.handle_current_time_request(message, websocket, callback)
 
-                elif len(words) > 1 and any(word in ['hours', 'minutes', 'seconds'] for word in words):
-                    if any(word in ['current', 'now'] for word in words):
-                        res_final = await tm.handle_current_time_duration_request(message, websocket, callback)
+                    elif len(words) > 1 and any(word in ['hours', 'minutes', 'seconds'] for word in words):
+                        if any(word in ['current', 'now'] for word in words):
+                            res_final = await tm.handle_current_time_duration_request(message, websocket, callback)
+                        else:
+                            await tm.handle_time_duration_request(message, websocket, callback)
+
+                    elif len(words) == 1:
+                        if random.random() < 0.5:
+
+                            conversation_state = None
+
+                            resp = "Did you mean what the time is ?"
+                            expected_yes_response = True
+                            expected_response = True
+                            expecting_song_name = False
+                            res_final = await gb.send_response(message,resp)
+                            await websocket.send(res_final)
+                        else:
+
+                            conversation_state = None
+
+                            expected_yes_response = True
+                            expected_response = True
+                            expecting_song_name = False
+                            prompt_about_date = f"ask the user whether I meant the time or something else based on the message:{message}"
+                            res_final = await gb.send_response_with_LLM(message,prompt_about_date)
+                            await websocket.send(res_final)
+
                     else:
-                        await tm.handle_time_duration_request(message, websocket, callback)
+                        await tm.unexpected_use_case(message, websocket, callback)
 
-                elif len(words) == 1:
-                    if random.random() < 0.5:
-
-                        conversation_state = None
-
-                        resp = "Did you mean what the time is ?"
-                        expected_yes_response = True
-                        expected_response = True
-                        res_final = await gb.send_response(message,resp)
-                        await websocket.send(res_final)
-                    else:
-
-                        conversation_state = None
-
-                        expected_yes_response = True
-                        expected_response = True
-                        prompt_about_date = f"ask the user whether I meant the time or something else based on the message:{message}"
-                        res_final = await gb.send_response_with_LLM(message,prompt_about_date)
-                        await websocket.send(res_final)
-
-                else:
+                elif time_pos_tag.startswith('JJ'):
                     await tm.unexpected_use_case(message, websocket, callback)
 
-            elif time_pos_tag.startswith('JJ'):
-                await tm.unexpected_use_case(message, websocket, callback)
+                elif len(words) > 1 and location:
+                    country_name = location.get('Country')
+                    state_name = location.get('State')
+                    city_name = location.get('City')
 
-            elif len(words) > 1 and location:
-                country_name = location.get('Country')
-                state_name = location.get('State')
-                city_name = location.get('City')
+                    current_time = get_current_time_in_timezone(location['Timezone'])
 
-                current_time = get_current_time_in_timezone(location['Timezone'])
-
-                if city_name:
-                    await websocket.send(f"Current time in {city_name}, {country_name} is {current_time}")
-                elif state_name:
-                    await websocket.send(f"Current time in {state_name}, {country_name} is {current_time}")
-                elif country_name:
-                    await websocket.send(f"Current time in {country_name} is {current_time}")
-
-            else:
-                conversation_state = None
-                resp = random.choice(messages['dynamic_responses']['time_questions'])
-                expected_yes_response = True
-                expected_response = True
-                res_final = await gb.send_response(message, resp)
-                await websocket.send(res_final)
-                time_flag = False
-
-    elif 'date' in words or date_flag:
-        tokens = nltk.word_tokenize(message)
-        tagged = nltk.pos_tag(tokens)
-        date_index = [i for i, word in enumerate(tokens) if word.lower() == 'date']
-        play_flag = False
-        if date_index:
-            date_pos_tag = tagged[date_index[0]][1]
-            if date_pos_tag.startswith('NN'):
-                if len(words) > 1 and any(word in ['today', 'current', 'present'] for word in words) or today_date_flag:
-                    await dt.handle_current_date(message, websocket, callback)
-
-                elif len(words) > 1 and any(word in ['yesterday', 'yesterdays'] for word in words) or yesterday_date_flag:
-                    await dt.handle_yesterday_date(message, websocket, callback)
-
-                elif len(words) > 1 and any(word in ['tomorrow', 'tomorrows'] for word in words) or tomorrow_date_flag:
-                    await dt.handle_tomorrow_date(message, websocket, callback)
-
-                elif len(words) == 1:
-                    if random.random() < 0.5:
-
-                        conversation_state = None
-
-                        resp = "Did you mean what is today's date ?"
-                        expected_yes_response = True
-                        expected_response = True
-                        res_final = await gb.send_response(message,response)
-                        await websocket.send(res_final)
-                    else:
-
-                        conversation_state = None
-
-                        expected_yes_response = True
-                        expected_response = True
-                        prompt_about_date = "ask the user whether the user meant today's date or something else"
-                        res_final = await gb.send_response_with_LLM(message,prompt_about_date)
-                        await websocket.send(res_final)
+                    if city_name:
+                        await websocket.send(f"Current time in {city_name}, {country_name} is {current_time}")
+                    elif state_name:
+                        await websocket.send(f"Current time in {state_name}, {country_name} is {current_time}")
+                    elif country_name:
+                        await websocket.send(f"Current time in {country_name} is {current_time}")
 
                 else:
+                    conversation_state = None
+                    resp = random.choice(messages['dynamic_responses']['time_questions'])
+                    expecting_song_name = False
+                    expected_yes_response = True
+                    expected_response = True
+                    res_final = await gb.send_response(message, resp)
+                    await websocket.send(res_final)
+                    time_flag = False
+
+        elif 'date' in words or date_flag:
+            expecting_song_name = False
+            tokens = nltk.word_tokenize(message)
+            tagged = nltk.pos_tag(tokens)
+            date_index = [i for i, word in enumerate(tokens) if word.lower() == 'date']
+            play_flag = False
+            if date_index:
+                date_pos_tag = tagged[date_index[0]][1]
+                if date_pos_tag.startswith('NN'):
+                    if len(words) > 1 and any(word in ['today', 'current', 'present'] for word in words) or today_date_flag:
+                        await dt.handle_current_date(message, websocket, callback)
+
+                    elif len(words) > 1 and any(word in ['yesterday', 'yesterdays'] for word in words) or yesterday_date_flag:
+                        await dt.handle_yesterday_date(message, websocket, callback)
+
+                    elif len(words) > 1 and any(word in ['tomorrow', 'tomorrows'] for word in words) or tomorrow_date_flag:
+                        await dt.handle_tomorrow_date(message, websocket, callback)
+
+                    elif len(words) == 1:
+                        if random.random() < 0.5:
+
+                            conversation_state = None
+                            expecting_song_name = False
+                            resp = "Did you mean what is today's date ?"
+                            expected_yes_response = True
+                            expected_response = True
+                            res_final = await gb.send_response(message,response)
+                            await websocket.send(res_final)
+                        else:
+
+                            conversation_state = None
+                            expecting_song_name = False
+                            expected_yes_response = True
+                            expected_response = True
+                            prompt_about_date = "ask the user whether the user meant today's date or something else"
+                            res_final = await gb.send_response_with_LLM(message,prompt_about_date)
+                            await websocket.send(res_final)
+
+                    else:
+                        await dt.unexpected_use_case(message, websocket, callback)
+
+                elif date_pos_tag.startswith('JJ'):
                     await dt.unexpected_use_case(message, websocket, callback)
 
-            elif date_pos_tag.startswith('JJ'):
-                await dt.unexpected_use_case(message, websocket, callback)
+
+        elif intent_str == 'question' and not expecting_song_name:
+            play_flag = False
+            if len(words) == 1:
+                prompt_single_question = f"Based on the message:{message} reply accordingly"
+                res_final = await gb.send_response_with_LLM(message, prompt_single_question)
+                await websocket.send(res_final)
+            else:
+                for entity_text, entity_type in entities:
+                    if entity_type == 'DATE':
+                        print("Found Date Entity")
+                        conversation_state = "question_date"
+                        res_final = await gb.send_question_answer(message)
+                        await websocket.send(res_final)
+                    elif entity_type == 'TIME':
+                        print("Found Time entity")
+                        conversation_state = "question_time"
+                        res_final = await gb.send_question_answer(message)
+                        await websocket.send(res_final)
+                    else:
+                        prompt_music_check = [f"Is the following message asking to play music? Reply with 'yes' or 'no' only.\n\nMessage: {message}"]
+                        music_check_result = llm._generate(prompt_music_check)
+                        music_check_response = music_check_result.generations[0][0].text.lower()
+
+                        if 'yes' in music_check_response:
+                            await mi.music_identifier(message,last_message,websocket)
+                        else:
+                            repeat_command = [f"check if the user is asking to repeat along with the user based on the message .Reply with a 'yes' or 'no' message:{message}"]
+                            repeat_result = llm._generate(repeat_command)
+                            check_response = repeat_result.generations[0][0].text.lower()
+
+                            if check_response == "yes":
+                                print("REPEAT MODE")
+                                prompt_repeat = f"Tell the user that you will repeat after the user"
+                                res_final = await gb.send_response_with_LLM(message,prompt_repeat)
+                                await websocket.send(res_final)
+                                repeat_flag = True
+                            else:
+                                silent_command = [f"check if the user is asking to be silent based on the message. Reply with a 'yes' or 'no' message:{message}"]
+                                silent_result = llm._generate(silent_command)
+                                check_response = silent_result.generations[0][0].text.lower()
+                                if check_response == "yes":
+                                    print("SILENT MODE")
+                                    prompt_silent = f"Tell the user that you will be silent"
+                                    res_final = await gb.send_response_with_LLM(message,prompt_silent)
+                                    await websocket.send(res_final)
+                                    silent_flag = True
+                                else:
+                                    expecting_song_name = False
+                                    play_flag = False
+                                    prompt_unknown = f"The user said something you dont understand. Based on the {message} answer accordingly"
+                                    res_final = await gb.send_response_with_LLM(message,prompt_unknown)
+                                    await websocket.send(res_final)
 
 
-    elif intent_str == 'question' and not expecting_song_name:
-        play_flag = False
-        if len(words) == 1:
-            prompt_single_question = f"Based on the message:{message} reply accordingly"
-            res_final = await gb.send_response_with_LLM(message, prompt_single_question)
-            await websocket.send(res_final)
-        else:
-            for entity_text, entity_type in entities:
-                if entity_type == 'DATE':
-                    print("Found Date Entity")
-                    conversation_state = "question_date"
-                    res_final = await gb.send_question_answer(message)
-                    await websocket.send(res_final)
-                elif entity_type == 'TIME':
-                    print("Found Time entity")
-                    conversation_state = "question_time"
-                    res_final = await gb.send_question_answer(message)
-                    await websocket.send(res_final)
-                else:
+                if not entities:
                     prompt_music_check = [f"Is the following message asking to play music? Reply with 'yes' or 'no' only.\n\nMessage: {message}"]
                     music_check_result = llm._generate(prompt_music_check)
                     music_check_response = music_check_result.generations[0][0].text.lower()
 
+                    expecting_song_name = False
                     if 'yes' in music_check_response:
-                        check_music_name = [f"Does the message: {message} contain the name of the song or an album? Reply with 'yes' or 'no' only"]
-                        song_name_result = llm._generate(check_music_name)
-                        song_name_check = song_name_result.generations[0][0].text.lower()
-
-                        if song_name_check == 'yes':
-                            play_flag = True
-
-                        else:
-                            get_music_name_from_last_reply = [f"Does the last reply contain a song name ? Reply with a 'yes' or 'no' Last Reply: {last_message}"]
-                            name_last_reply = llm._generate(get_music_name_from_last_reply)
-                            name_check = name_last_reply.generations[0][0].text.lower()
-
-                            if name_check == 'yes':
-                                is_user_asking = [f"Is the user asking to play it ? Reply with a 'yes' or 'no' Message:{message}"]
-                                name_last_reply = llm._generate(is_user_asking)
-                                name_check = name_last_reply.generations[0][0].text.lower()
-                                if name_check == 'yes':
-                                    music_name_from_last_reply = [f"Get the song name from last reply: {last_message}"]
-                                    name_last_reply = llm._generate(music_name_from_last_reply)
-                                    name_check = name_last_reply.generations[0][0].text.lower()
-                                    song_name = name_check
-                                    print("KUNTENTZ OF DA VERIYABLE SONG NEIM : ",song_name)
-                                    play_flag = True
-                                    song_enquiry = True
-                            else:
-                                is_user_asking_favourite_song = [f"The user is asking to play his/her favourite song or any kind of music eg: workout music. Reply with a 'yes' or 'no' message:{message}"]
-                                name_last_reply = llm._generate(is_user_asking_favourite_song)
-                                name_check = name_last_reply.generations[0][0].text.lower()
-                                if name_check == 'yes':
-                                    find_song = f"Find the song name from the previous messages based on the message : {message}.reply with the song name.If no song name is found return 'None'"
-                                    res_final = await conversation_LLM(message,find_song)
-                                    if 'None' not in res_final:
-                                        res_final_str = ''.join(res_final)
-                                        cleaned_string = re.sub(r'(\[.*?\]|AI:)', '', res_final_str)
-                                
-                                        print(cleaned_string)
-
-                                        song_name = cleaned_string
-                                        play_flag = True
-                                        special_music_case1 = True
-                                    else:
-                                        print("YOU DON'T HAVE ANY FAVOURITES")
-                                else:
-                                    check_music_name = f"Get the name of the song or album from the user.If the user requests a random song give a random song name of your choice"
-                                    res_final = await gb.send_response_with_LLM(message,check_music_name)
-                                    await websocket.send(res_final)
-
-
-            if not entities:
-                prompt_music_check = [f"Is the following message asking to play music? Reply with 'yes' or 'no' only.\n\nMessage: {message}"]
-                music_check_result = llm._generate(prompt_music_check)
-                music_check_response = music_check_result.generations[0][0].text.lower()
-
-                if 'yes' in music_check_response:
-                    random_request = [f"Is the following message asking to play a random song ? Reply with 'yes' or 'no' only.\n\nMessage: {message}"]
-                    song_name_result = llm._generate(random_request)
-                    song_name_check = song_name_result.generations[0][0].text.lower()
-
-                    if song_name_check == 'yes':
-                        random_request = [f"Recoomend a good song to listen to for the user.Only print the song name along with the artist"]
-                        random_name_result = llm._generate(random_request)
-                        random_name_check = random_name_result.generations[0][0].text.lower()
-                        song_name = random_name_check
-                        play_flag = True
-                        special_music_case1 = True
+                        await mi.music_identifier(message,last_message,websocket)
                     else:
-
-                        check_music_name = [f"Does the message: {message} contain the name of the song or an album? Reply with 'yes' or 'no' only"]
-                        song_name_result = llm._generate(check_music_name)
-                        song_name_check = song_name_result.generations[0][0].text.lower()
-
-                        if song_name_check == 'yes':
-                            play_flag = True
-
-                        else:
-                            get_music_name_from_last_reply = [f"Does the last reply contain a song name ? Reply with a 'yes' or 'no' Last Reply: {last_message}"]
-                            name_last_reply = llm._generate(get_music_name_from_last_reply)
-                            name_check = name_last_reply.generations[0][0].text.lower()
-
-                            if name_check == 'yes':
-                                is_user_asking = [f"Is the user asking to play it ? Reply with a 'yes' or 'no' Message:{message}"]
-                                name_last_reply = llm._generate(is_user_asking)
-                                name_check = name_last_reply.generations[0][0].text.lower()
-                                if name_check == 'yes':
-                                    music_name_from_last_reply = [f"Get the song name from last reply: {last_message}"]
-                                    name_last_reply = llm._generate(music_name_from_last_reply)
-                                    name_check = name_last_reply.generations[0][0].text.lower()
-                                    song_name = name_check
-                                    print("KUNTENTZ OF DA VERIYABLE SONG NEIM : ",song_name)
-                                    play_flag = True
-                                    song_enquiry = True
-                            else:
-                                is_user_asking_favourite_song = [f"The user is asking to play his/her favourite song. Reply with a 'yes' or 'no' message:{message}"]
-                                name_last_reply = llm._generate(is_user_asking_favourite_song)
-                                name_check = name_last_reply.generations[0][0].text.lower()
-                                if name_check == 'yes':
-                                    find_song = f"Find the song name from the previous messages based on the message : {message}.reply with the song name.If no song name is found return 'None'"
-                                    res_final = await conversation_LLM(message,find_song)
-                                    if 'None' not in res_final:
-                                        res_final_str = ''.join(res_final)
-                                        cleaned_string = re.sub(r'(\[.*?\]|AI:)', '', res_final_str)
-                                
-                                        print(cleaned_string)
-
-                                        song_name = cleaned_string
-                                        play_flag = True
-                                        special_music_case1 = True
-                                    else:
-                                        print("YOU DON'T HAVE ANY FAVOURITES")
+                        if song_playing:
+                            if 'pause' in words:
+                                if not is_paused:
+                                    pause_and_play()
+                                    is_paused = True
+                                    play_flag = False
+                                    await log_conversation(message, "Sure")
+                                    await websocket.send("Sure")
                                 else:
-                                    check_music_name = f"Get the name of the song or album from the user.If the user requests a random song give a random song name of your choice"
-                                    res_final = await gb.send_response_with_LLM(message,check_music_name)
-                                    await websocket.send(res_final)
+                                    play_flag = False
+                                    await log_conversation(message, "Song is already paused")
+                                    await websocket.send("Song is already paused")
 
+                            elif 'resume' in words:
+                                if is_paused:
+                                    resume_play()
+                                    is_paused = False
+                                    play_flag = False
+                                    await log_conversation(message, "Sure")
+                                    await websocket.send("Sure")
+                                else:
+                                    play_flag = False
+                                    await log_conversation(message, "Song is already playing")
+                                    await websocket.send("Song is already playing")
 
-
-                else:
-                    if song_playing:
-                        if 'pause' in words:
-                            if not is_paused:
-                                pause_and_play()
-                                is_paused = True
-                                play_flag = False
-                                await log_conversation(message, "Sure")
-                                await websocket.send("Sure")
-                            else:
-                                play_flag = False
-                                await log_conversation(message, "Song is already paused")
-                                await websocket.send("Song is already paused")
-
-                        elif 'resume' in words:
-                            if is_paused:
-                                resume_play()
+                            elif 'stop' in words:
+                                stop()
                                 is_paused = False
                                 play_flag = False
-                                await log_conversation(message, "Sure")
-                                await websocket.send("Sure")
+                                await log_conversation(message, "Done")
+                                await websocket.send("Done")
+                                song_playing = False
+                        else:
+                            repeat_command = [f"check if the user is asking to repeat along with the user based on the message .Reply with a 'yes' or 'no' message:{message}"]
+                            repeat_result = llm._generate(repeat_command)
+                            check_response = repeat_result.generations[0][0].text.lower()
+
+                            if check_response == "yes":
+                                print("REPEAT MODE")
+                                prompt_repeat = f"Tell the user that you will repeat after the user"
+                                res_final = await gb.send_response_with_LLM(message,prompt_repeat)
+                                await websocket.send(res_final)
+                                repeat_flag = True
                             else:
-                                play_flag = False
-                                await log_conversation(message, "Song is already playing")
-                                await websocket.send("Song is already playing")
+                                silent_command = [f"check if the user is asking to be silent based on the message. Reply with a 'yes' or 'no' message:{message}"]
+                                silent_result = llm._generate(silent_command)
+                                check_response = silent_result.generations[0][0].text.lower()
+                                if check_response == "yes":
+                                    print("SILENT MODE")
+                                    prompt_silent = f"Tell the user that you will be silent"
+                                    res_final = await gb.send_response_with_LLM(message,prompt_silent)
+                                    await websocket.send(res_final)
+                                    silent_flag = True
+                                else:
+                                    prompt_unknown = f"The user said something you dont understand. Based on the {message} answer accordingly"
+                                    res_final = await gb.send_response_with_LLM(message,prompt_unknown)
+                                    await websocket.send(res_final)
+                                    song_playing = False
+                                    play_flag = False
+                                    conversation_state = "question"
 
-                        elif 'stop' in words:
-                            stop()
-                            is_paused = False
-                            play_flag = False
-                            await log_conversation(message, "Done")
-                            await websocket.send("Done")
-                            song_playing = False
-                    else:
-                        play_flag = False
-                        prompt_unknown = f"The user said something you dont understand. Based on the {message} answer accordingly"
-                        res_final = await gb.send_response_with_LLM(message,prompt_unknown)
+        elif 'day' in words or day_flag:
+            play_flag = False
+            if len(words) > 1 or day_flag:
+                if 'today' in words or day_flag:
+
+                    day.handle_current_day(message,websocket,callback)
+
+                elif 'tomorrow' in words or day_flag:
+
+                    day.handle_tomorrow_day(message,websocket,callback)
+
+                elif 'yesterday' in words or day_flag:
+
+                    day.handle_yesterday_day(message,websocket,callback)
+
+            else:
+                prompt_about_day = f"You don't understand what the user meant Ask what the user wants to know about the day."
+
+                conversation_state = None
+
+                expected_yes_response = True
+                expected_response = True
+                res_final = await gb.send_response_with_LLM(message,prompt_about_day)
+                await websocket.send(res_final)
+
+        elif 'change' in words:
+            play_flag = False
+            if 'look' in words:
+                conversation_state = None
+                await log_conversation(message, "Sure! How do you like my new look")
+                await websocket.send("Sure! How do you like my new look")
+
+
+        elif 'timer' in words:
+            play_flag = False
+            if 'set' in words:
+                print("TIMER REQUEST")
+                conversation_state = None
+                await log_conversation(message, "Timer Started")
+                await websocket.send("Timer Started")
+            elif 'pause' in words:
+                conversation_state = None
+                await log_conversation(message, "Timer Paused")
+                await websocket.send("Timer Paused")
+            elif 'stop' in words:
+                conversation_state = None
+                await log_conversation(message, "Timer Stopped")
+                await websocket.send("Timer Stopped")
+
+        elif 'alarm' in words:
+            play_flag = False
+            if 'set' in words:
+                print("ALARM REQUEST")
+                conversation_state = None
+                await log_conversation(message, "Alarm Started")
+                await websocket.send("Alarm Started")
+
+
+        elif 'weather' in words or weather_flag:
+            play_flag = False
+            if len(words) > 1 or weather_flag:
+                if 'today' or 'current' or 'todays' in words or weather_flag:
+                    weather_flag = False
+                    if 'detailed' in words:
+
+                        conversation_state = "detailed weather"
+
+                        x = main_stuff()
+                        await log_conversation(message, x)
+                        split_pattern = r'(?<!\d)\.(?!\d)'
+
+                        res = re.split(split_pattern, x)
+                        results = [f"{await predict_emotion(sentence)}{sentence}" for sentence in res]
+                        res_final = '.'.join(results)
                         await websocket.send(res_final)
-                        song_playing = False
-                        play_flag = False
-                        conversation_state = "question"
+                    else:
 
-    elif 'day' in words or day_flag:
-        play_flag = False
-        if len(words) > 1 or day_flag:
-            if 'today' in words or day_flag:
+                        conversation_state = "less-detailed weather"
 
-                day.handle_current_day(message,websocket,callback)
+                        if not location:
+                            y = main_stuff()
+                            index_description = y.find('The overall condition is described as')
+                            if index_description != -1:
+                                index_full_stop = y.find('.', index_description)
+                                if index_full_stop != -1:
+                                    extracted_message = y[:index_full_stop + 1].strip()
+                                    await log_conversation(message, extracted_message)
+                                    split_pattern = r'(?<!\d)\.(?!\d)'
 
-            elif 'tomorrow' in words or day_flag:
+                                    res = re.split(split_pattern, extracted_message)
+                                    results = [f"{await predict_emotion(sentence)}{sentence}" for sentence in res]
+                                    res_final = '.'.join(results)
+                                    await websocket.send(res_final)
+                                else:
+                                    await log_conversation(message, y)
+                                    await websocket.send(y)
+                            else:
+                                await log_conversation(message, y)
+                                await websocket.send(y)
+                        else:
+                            country_name = location.get('Country')
+                            state_name = location.get('State')
+                            city_name = location.get('City')
 
-                day.handle_tomorrow_day(message,websocket,callback)
-
-            elif 'yesterday' in words or day_flag:
-
-                day.handle_yesterday_day(message,websocket,callback)
-
-        else:
-            prompt_about_day = f"You don't understand what the user meant Ask what the user wants to know about the day."
-
-            conversation_state = None
-
-            expected_yes_response = True
-            expected_response = True
-            res_final = await gb.send_response_with_LLM(message,prompt_about_day)
-            await websocket.send(res_final)
-
-    elif 'change' in words:
-        play_flag = False
-        if 'look' in words:
-            conversation_state = None
-            await log_conversation(message, "Sure! How do you like my new look")
-            await websocket.send("Sure! How do you like my new look")
-
-
-    elif 'timer' in words:
-        play_flag = False
-        if 'set' in words:
-            print("TIMER REQUEST")
-            conversation_state = None
-            await log_conversation(message, "Timer Started")
-            await websocket.send("Timer Started")
-        elif 'pause' in words:
-            conversation_state = None
-            await log_conversation(message, "Timer Paused")
-            await websocket.send("Timer Paused")
-        elif 'stop' in words:
-            conversation_state = None
-            await log_conversation(message, "Timer Stopped")
-            await websocket.send("Timer Stopped")
-
-    elif 'alarm' in words:
-        play_flag = False
-        if 'set' in words:
-            print("ALARM REQUEST")
-            conversation_state = None
-            await log_conversation(message, "Alarm Started")
-            await websocket.send("Alarm Started")
-
-
-    elif 'weather' in words or weather_flag:
-        play_flag = False
-        if len(words) > 1 or weather_flag:
-            if 'today' or 'current' or 'todays' in words or weather_flag:
-                weather_flag = False
-                if 'detailed' in words:
-
-                    conversation_state = "detailed weather"
-
-                    x = main_stuff()
-                    await log_conversation(message, x)
-                    split_pattern = r'(?<!\d)\.(?!\d)'
-
-                    res = re.split(split_pattern, x)
-                    results = [f"{await predict_emotion(sentence)}{sentence}" for sentence in res]
-                    res_final = '.'.join(results)
-                    await websocket.send(res_final)
-                else:
-
-                    conversation_state = "less-detailed weather"
-
-                    y = main_stuff()
-                    index_description = y.find('The overall condition is described as')
-                    if index_description != -1:
-                        index_full_stop = y.find('.', index_description)
-                        if index_full_stop != -1:
-                            extracted_message = y[:index_full_stop + 1].strip()
-                            await log_conversation(message, extracted_message)
+                            if city_name:
+                                place_name = city_name
+                            elif state_name:
+                                place_name = state_name
+                            elif country_name:
+                                place_name = country_name
+                            z = main_stuff()
+                            await log_conversation(message, z)
                             split_pattern = r'(?<!\d)\.(?!\d)'
 
-                            res = re.split(split_pattern, extracted_message)
+                            res = re.split(split_pattern, z)
                             results = [f"{await predict_emotion(sentence)}{sentence}" for sentence in res]
                             res_final = '.'.join(results)
                             await websocket.send(res_final)
-                        else:
-                            await log_conversation(message, y)
-                            await websocket.send(y)
-                    else:
-                        await log_conversation(message, y)
-                        await websocket.send(y)
+                else:
+
+                    conversation_state = None
+
+                    response = "Sorry I am unable to get the weather forecast.I will be able to help you with today's weather"
+                    res_final = await gb.send_response(message,response)
+                    await websocket.send(res_final)
             else:
+                if random.random() < 0.5:
 
-                conversation_state = None
+                    conversation_state = None
 
-                response = "Sorry I am unable to get the weather forecast.I will be able to help you with today's weather"
-                res_final = await gb.send_response(message,response)
-                await websocket.send(res_final)
+                    resp = "Did you mean what is today's weather ?"
+                    expected_yes_response = True
+                    expected_respone = True
+                    res_final = await gb.send_response(message,response)
+                    await websocket.send(res_final)
+                else:
+
+                    conversation_state = None
+
+                    expected_yes_response = True
+                    expected_respone = True
+                    prompt_about_date = "ask whether the user meant today's weather"
+                    res_final = await gb.send_response_with_LLM(message,prompt_about_date)
+                    await websocket.send(res_final)
+
         else:
-            if random.random() < 0.5:
+            if any(greeting in message_lower for greeting in ['good morning', 'good afternoon', 'good evening', 'good night']) and intent_str == 'greet':
+                play_flag = False
+                if 'good ' + time_of_day not in message_lower:
 
-                conversation_state = None
+                    conversation_state = 'salutation-correction'
 
-                resp = "Did you mean what is today's weather ?"
-                expected_yes_response = True
-                expected_respone = True
-                res_final = await gb.send_response(message,response)
-                await websocket.send(res_final)
-            else:
+                    correction = random.choice(messages['corrections']).format(time_of_day=time_of_day, greeting=message_lower)
+                    res_final = await gb.send_response(message,correction)
+                    await websocket.send(res_final)
 
-                conversation_state = None
+                if random.random() < 0.5:
 
-                expected_yes_response = True
-                expected_respone = True
-                prompt_about_date = "ask whether the user meant today's weather"
-                res_final = await gb.send_response_with_LLM(message,prompt_about_date)
-                await websocket.send(res_final)
+                    conversation_state = 'salutation'
 
-    else:
-        if any(greeting in message_lower for greeting in ['good morning', 'good afternoon', 'good evening', 'good night']) and intent_str == 'greet':
-            play_flag = False
-            if 'good ' + time_of_day not in message_lower:
+                    response = random.choice(messages['salutations'][f'good_{time_of_day}'])
+                    res_final = await gb.send_response(message,response)
+                    await websocket.send(res_final)
+                else:
 
-                conversation_state = 'salutation-correction'
+                    conversation_state = 'salutation'
+
+                    prompt_greet = message
+                    res_final = await gb.send_response(message,res_final)
+                    await websocket.send(res_final)
+
+            elif 'good night' in message_lower and time_of_day not in ['night', 'evening']:
+                play_flag = False
+                expecting_song_name = False
+                conversation_state = 'salutation-goodnight'
 
                 correction = random.choice(messages['corrections']).format(time_of_day=time_of_day, greeting=message_lower)
                 res_final = await gb.send_response(message,correction)
                 await websocket.send(res_final)
 
-            if random.random() < 0.5:
 
-                conversation_state = 'salutation'
+            elif len(words) == 1 and not any(word in ['pause', 'stop', 'resume','play'] for word in words):
+                play_flag = False
+                for key, options in messages['greetings'].items():
+                    if key in message_lower and intent_str=='greet':
+                        conversation_state = "start"
+                        expecting_song_name = False
+                        response = random.choice(options)
+                        res_final = await gb.send_response(message,response)
+                        await websocket.send(res_final)
 
-                response = random.choice(messages['salutations'][f'good_{time_of_day}'])
-                res_final = await gb.send_response(message,response)
-                await websocket.send(res_final)
-            else:
+                        try:
+                            received_message = await asyncio.wait_for(websocket.recv(), timeout=5)
+                            print("Received message within 5 seconds:", received_message)
+                            if callback:
+                                await callback(websocket, received_message)
+                        except asyncio.TimeoutError:
+                            start_time = time.time()
+                            print("No message received within 5 seconds")
+                            x = await get_conversation_state(conversation_state, res_final)
+                            message = ""
+                            await log_conversation(message,x)
+                            await websocket.send(str(x))
+                            print(conversation_state)
+                        break
 
-                conversation_state = 'salutation'
-
-                prompt_greet = message
-                res_final = await gb.send_response(message,res_final)
-                await websocket.send(res_final)
-
-        elif 'good night' in message_lower and time_of_day not in ['night', 'evening']:
-            play_flag = False
-            conversation_state = 'salutation-goodnight'
-
-            correction = random.choice(messages['corrections']).format(time_of_day=time_of_day, greeting=message_lower)
-            res_final = await gb.send_response(message,correction)
-            await websocket.send(res_final)
-
-
-        elif len(words) == 1 and not any(word in ['pause', 'stop', 'resume','play'] for word in words):
-            play_flag = False
-            for key, options in messages['greetings'].items():
-                if key in message_lower and intent_str=='greet':
-                    conversation_state = "start"
-
-                    response = random.choice(options)
-                    res_final = await gb.send_response(message,response)
+                else:
+                    response = random.choice(messages['dynamic_responses']['default'])
+                    await log_conversation(message, response)
+                    conversation_state = None
+                    expected_yes_response = True
+                    expecting_song_name = False
+                    play_flag = False
+                    expected_response=True
+                    res = response.split('.')
+                    results = [f"{await predict_emotion(sentence)}{sentence}" for sentence in res]
+                    res_final = '.'.join(results)
                     await websocket.send(res_final)
 
-                    try:
-                        received_message = await asyncio.wait_for(websocket.recv(), timeout=5)
-                        print("Received message within 5 seconds:", received_message)
-                        if callback:
-                            await callback(websocket, received_message)
-                    except asyncio.TimeoutError:
-                        start_time = time.time()
-                        print("No message received within 5 seconds")
-                        x = await get_conversation_state(conversation_state, res_final)
-                        message = ""
-                        await log_conversation(message,x)
-                        await websocket.send(str(x))
-                        print(conversation_state)
-                    break
+            elif len(words) > 1: 
+                for key, options in messages['greetings'].items():
+                    if key in message_lower and intent_str=='greet':
+                        expecting_song_name = False
+                        conversation_state = "start"
 
-            else:
+                        prompt_about_day = f"The user just greeted and asked you something along with it.Based on the {message} answer accordingly"
+
+                        res_final = await gb.send_response_with_LLM(message,prompt_about_day)
+                        await websocket.send(res_final)
+
+            elif conversation_state == None and (previous_conversation_state != conversation_state) and intent_str == 'fallback':
+                conversation_state = None
+                expecting_song_name = False
                 response = random.choice(messages['dynamic_responses']['default'])
                 await log_conversation(message, response)
-                conversation_state = None
                 expected_yes_response = True
-                play_flag = False
                 expected_response=True
                 res = response.split('.')
                 results = [f"{await predict_emotion(sentence)}{sentence}" for sentence in res]
                 res_final = '.'.join(results)
                 await websocket.send(res_final)
+            prompt_music_check = [f"Is the following message asking to play music or asking for suggestion? Reply with 'music' or 'suggestion' only .\n\nMessage: {message}"]
+            llm_result = llm._generate(prompt_music_check)
 
-        elif len(words) > 1: 
-            for key, options in messages['greetings'].items():
-                if key in message_lower and intent_str=='greet':
-                    conversation_state = "start"
+            print(llm_result.generations[0][0].text)
+            if 'music' in llm_result.generations[0][0].text:
+                if len(words) > 1:
+                    prompt_music_check = [f"Is the following message asking to play music? Reply with 'yes' or 'no' only.\n\nMessage: {message}"]
+                    music_check_result = llm._generate(prompt_music_check)
+                    music_check_response = music_check_result.generations[0][0].text.lower()
 
-                    prompt_about_day = f"The user just greeted and asked you something along with it.Based on the {message} answer accordingly"
-
-                    res_final = await gb.send_response_with_LLM(message,prompt_about_day)
-                    await websocket.send(res_final)
-
-        elif conversation_state == None and (previous_conversation_state != conversation_state) and intent_str == 'fallback':
-            conversation_state = None
-            response = random.choice(messages['dynamic_responses']['default'])
-            await log_conversation(message, response)
-            expected_yes_response = True
-            expected_response=True
-            res = response.split('.')
-            results = [f"{await predict_emotion(sentence)}{sentence}" for sentence in res]
-            res_final = '.'.join(results)
-            await websocket.send(res_final)
-        prompt_music_check = [f"Is the following message asking to play music or asking for suggestion? Reply with 'music' or 'suggestion' only .\n\nMessage: {message}"]
-        llm_result = llm._generate(prompt_music_check)
-
-        print(llm_result.generations[0][0].text)
-        if 'music' in llm_result.generations[0][0].text:
-            if len(words) > 1:
-                prompt_music_check = [f"Is the following message asking to play music? Reply with 'yes' or 'no' only.\n\nMessage: {message}"]
-                music_check_result = llm._generate(prompt_music_check)
-                music_check_response = music_check_result.generations[0][0].text.lower()
-
-                if 'yes' in music_check_response:
-                    check_music_name = [f"Does the message: {message} contain the name of the song or an album? Reply with 'yes' or 'no' only"]
-                    song_name_result = llm._generate(check_music_name)
-                    song_name_check = song_name_result.generations[0][0].text.lower()
-
-                    if song_name_check == 'yes':
-                        play_flag = True
-
+                    if 'yes' in music_check_response:
+                        await mi.music_identifier(message,last_message,websocket)
                     else:
-                        get_music_name_from_last_reply = [f"Does the last reply contain a song name ? Reply with a 'yes' or 'no' Last Reply: {last_message}"]
-                        name_last_reply = llm._generate(get_music_name_from_last_reply)
-                        name_check = name_last_reply.generations[0][0].text.lower()
-
-                        if name_check == 'yes':
-                            music_name_from_last_reply = [f"Get the song name from last reply: {last_message}"]
-                            name_last_reply = llm._generate(music_name_from_last_reply)
-                            name_check = name_last_reply.generations[0][0].text.lower()
-                            song_name = name_check
-                            print("KUNTENTZ OF DA VERIYABLE SONG NEIM : ",song_name)
-                            play_flag = True
-                            song_enquiry = True
-                        else:
-                            is_user_asking_favourite_song = [f"The user is asking to play his/her favourite song or any kind of music eg: workout music. Reply with a 'yes' or 'no' message:{message}"]
-                            name_last_reply = llm._generate(is_user_asking_favourite_song)
-                            name_check = name_last_reply.generations[0][0].text.lower()
-                            if name_check == 'yes':
-                                find_song = f"Find the song name from the previous messages based on the message : {message}.reply with the song name.If no song name is found return 'None'"
-                                res_final = await conversation_LLM(message,find_song)
-                                if 'None' not in res_final:
-                                    res_final_str = ''.join(res_final)
-                                    cleaned_string = re.sub(r'(\[.*?\]|AI:)', '', res_final_str)
-                                
-                                    print(cleaned_string)
-
-                                    song_name = cleaned_string
-                                    play_flag = True
-                                    special_music_case1 = True
-                                else:
-                                    print("YOU DON'T HAVE ANY FAVOURITES")
-                            else:
-                                check_music_name = f"Get the name of the song or album from the user.If the user requests a random song give a random song name of your choice"
-                                res_final = await gb.send_response_with_LLM(message,check_music_name)
-                                await websocket.send(res_final)
-                else:
-                    play_flag = False
-                    prompt_unknown = f"The user said something you dont understand. Based on the {message} answer accordingly"
-                    res_final = await gb.send_response_with_LLM(message,prompt_unknown)
-                    await websocket.send(res_final)
+                        if not expecting_song_name:
+                            play_flag = False
+                            expecting_song_name = False
+                            prompt_unknown = f"The user said something you dont understand. Based on the {message} answer accordingly"
+                            res_final = await gb.send_response_with_LLM(message,prompt_unknown)
+                            await websocket.send(res_final)
         
-        else:
-            if song_playing:
-                if 'pause' in words:
-                    if not is_paused:
-                        pause_and_play()
-                        is_paused = True
-                        play_flag = False
-                        await log_conversation(message, "Sure")
-                        await websocket.send("Sure")
-                    else:
-                        play_flag = False
-                        await log_conversation(message, "Song is already paused")
-                        await websocket.send("Song is already paused")
+            else:
+                if song_playing:
+                    if 'pause' in words:
+                        expecting_song_name = False
+                        if not is_paused:
+                            pause_and_play()
+                            is_paused = True
+                            play_flag = False
+                            await log_conversation(message, "Sure")
+                            await websocket.send("Sure")
+                        else:
+                            play_flag = False
+                            await log_conversation(message, "Song is already paused")
+                            await websocket.send("Song is already paused")
 
-                elif 'resume' in words:
-                    if is_paused:
-                        resume_play()
+                    elif 'resume' in words:
+                        expecting_song_name = False
+                        if is_paused:
+                            resume_play()
+                            is_paused = False
+                            play_flag = False
+                            await log_conversation(message, "Sure")
+                            await websocket.send("Sure")
+                        else:
+                            play_flag = False
+                            await log_conversation(message, "Song is already playing")
+                            await websocket.send("Song is already playing")
+
+                    elif 'stop' in words:
+                        expecting_song_name = False
+                        stop()
                         is_paused = False
                         play_flag = False
-                        await log_conversation(message, "Sure")
-                        await websocket.send("Sure")
+                        await log_conversation(message, "Done")
+                        await websocket.send("Done")
+                        song_playing = False
                     else:
-                        play_flag = False
-                        await log_conversation(message, "Song is already playing")
-                        await websocket.send("Song is already playing")
+                        repeat_command = [f"check if the user is asking to repeat along with the user based on the message .Reply with a 'yes' or 'no' message:{message}"]
+                        repeat_result = llm._generate(repeat_command)
+                        check_response = repeat_result.generations[0][0].text.lower()
 
-                elif 'stop' in words:
-                    stop()
-                    is_paused = False
-                    play_flag = False
-                    await log_conversation(message, "Done")
-                    await websocket.send("Done")
-                    song_playing = False
+                        if check_response == "yes":
+                            print("REPEAT MODE")
+                            prompt_repeat = f"Tell the user that you will repeat after the user"
+                            res_final = await gb.send_response_with_LLM(message,prompt_repeat)
+                            await websocket.send(res_final)
+                            repeat_flag = True
+                        else:
+                            silent_command = [f"check if the user is asking to be silent based on the message. Reply with a 'yes' or 'no' message:{message}"]
+                            silent_result = llm._generate(silent_command)
+                            check_response = silent_result.generations[0][0].text.lower()
+                            if check_response == "yes":
+                                print("SILENT MODE")
+                                prompt_silent = f"Tell the user that you will be silent"
+                                res_final = await gb.send_response_with_LLM(message,prompt_silent)
+                                await websocket.send(res_final)
+                                silent_flag = True
+                            else:
+                                expecting_song_name = False
+                                play_flag = False
+                                prompt_unknown = f"The user said something you dont understand. Based on the {message} answer accordingly"
+                                res_final = await gb.send_response_with_LLM(message,prompt_unknown)
+                                await websocket.send(res_final)
                 else:
-                    play_flag = False
-                    prompt_unknown = f"The user said something you dont understand. Based on the {message} answer accordingly"
-                    res_final = await gb.send_response_with_LLM(message,prompt_unknown)
-                    await websocket.send(res_final)
-            else:
-                play_flag = False
-                prompt_unknown = f"The user said something you dont understand. Based on the {message} answer accordingly"
-                res_final = await gb.send_response_with_LLM(message,prompt_unknown)
-                await websocket.send(res_final)
+                    repeat_command = [f"check if the user is asking to repeat along with the user based on the message .Reply with a 'yes' or 'no' message:{message}"]
+                    repeat_result = llm._generate(repeat_command)
+                    check_response = repeat_result.generations[0][0].text.lower()
+
+                    if check_response == "yes":
+                        print("REPEAT MODE")
+                        prompt_repeat = f"Tell the user that you will repeat after the user"
+                        res_final = await gb.send_response_with_LLM(message,prompt_repeat)
+                        await websocket.send(res_final)
+                        repeat_flag = True
+                    else:
+                        silent_command = [f"check if the user is asking to be silent based on the message. Reply with a 'yes' or 'no' message:{message}"]
+                        silent_result = llm._generate(silent_command)
+                        check_response = silent_result.generations[0][0].text.lower()
+                        if check_response == "yes":
+                            print("SILENT MODE")
+                            prompt_silent = f"Tell the user that you will be silent"
+                            res_final = await gb.send_response_with_LLM(message,prompt_silent)
+                            await websocket.send(res_final)
+                            silent_flag = True
+                        else:
+                            playlist_enquiry = [f"check if the message is a playlist related enquiry ? . Reply with a 'yes' or 'no' message:{message}"]
+                            playlist_result = llm._generate(playlist_enquiry)
+                            playlist_response = playlist_result.generations[0][0].text.lower()
+
+                            if playlist_response == "yes":
+                                print("PLAYLIST ENQUIRY")
+                            else:
+                                expecting_song_name = False
+                                play_flag = False
+                                prompt_unknown = f"The user said something you dont understand. Based on the {message} answer accordingly"
+                                res_final = await gb.send_response_with_LLM(message,prompt_unknown)
+                                await websocket.send(res_final)
 
 
-    #------------------- TOPIC SELECTOR ----------------------#
-    if conversation_state != None and intent_str != 'fallback':
-        if previous_conversation_state == conversation_state:
-            prmpt = f"Based on the user's query {message} and Based on your last reply : {last_message}.Continue Chatting with Your Friend"
-            reply_state = await conversation_LLM(message,prmpt)
-            message = ""
-            await log_conversation(message,reply_state)
-            await websocket.send(reply_state)
-    #---------------------------------------------------------#
+        #------------------- TOPIC SELECTOR ----------------------#
+        if conversation_state != None and intent_str != 'fallback':
+            if previous_conversation_state == conversation_state:
+                prmpt = f"Based on the user's query {message} and Based on your last reply : {last_message}.Continue Chatting with Your Friend"
+                reply_state = await conversation_LLM(message,prmpt)
+                message = ""
+                await log_conversation(message,reply_state)
+                await websocket.send(reply_state)
+        #---------------------------------------------------------#
     
-    if play_flag:
-        song_playing = True
-        if song_enquiry:
-            await play_song(song_name,websocket)
-        elif special_music_case1:
-            await play_song(song_name,websocket)
-        else:
-            await play_song(message,websocket)
-        #prompt_music_question = f"Based on the message:{message} get the name of the song.If its a random request give a song"
-        #res_final = await gb.send_response_with_LLM(message, prompt_music_question)
-        #search_results = ytmusic.search(res_final)
-        #is_paused = False
-        #for result in search_results:
-        #    if result.get('resultType') == 'song':
-        #        videoid = result.get('videoId')
-        #        song_name = result.get('title')
-        #        artists = [artist.get('name') for artist in result.get('artists', []) if artist.get('name') != 'Song']
-        #        album_name = result.get('album', {}).get('name')
-        #        thumbnail_url = result.get('thumbnails', [{}])[0].get('url', 'No thumbnail available')
-        #        print('Song Name:', song_name)
-        #        print('Artist(s):', ', '.join(artists))
-        #        print('Album:', album_name)
-        #        print('Thumbnail URL:', thumbnail_url)
-        #        print()
-        #        break
-        #stream(videoid)
-        #await log_conversation(message, f"Sure ... Playing {artists} - {song_name}")
-        #await websocket.send(f"Sure ... Playing {''.join(artists)} - {song_name}")
-        #song_playing = True
+        if play_flag:
+            song_playing = True
+            if song_enquiry:
+                await play_song(song_name,websocket)
+            elif special_music_case1:
+                await play_song(song_name,websocket)
+            else:
+                await play_song(message,websocket)
+        if silent_flag:
+            for entity_text, entity_type in entities:
+                if entity_type == "TIME":
+                    print("TIME TO BE SILENT : ",entity_text)
+                    try:
+                        # Use regular expressions to extract the value and unit
+                        pattern = r"(\d+)\s*(\w+)"
+                        match = re.match(pattern, entity_text)
 
-    print("CURRENT CONVERSATION STATE : ",conversation_state)
-    print("CURRENT SONG : ",song_name)
-    print("Song Playing : ",song_playing)
+                        if match:
+                            value = int(match.group(1))
+                            unit = match.group(2).lower()
+
+                            # Calculate the countdown time in seconds
+                            if unit.startswith("minute"):
+                                countdown_seconds = value * 60
+                            elif unit.startswith("hour"):
+                                countdown_seconds = value * 3600
+                            else:
+                                print(f"Unknown time unit: {unit}")
+                                continue
+
+                            # Start the countdown
+                            while countdown_seconds > 0:
+
+                                try:
+                                    message = await asyncio.wait_for(websocket.recv(), timeout=1.0)
+                                    print("MESSAGE RECIEVED DURING SILENCE")
+                                    if message:
+                                        check_silence_stop = [f"check if the user is asking to stop the silent based on the message. Reply with a 'yes' or 'no' message:{message}"]
+                                        silent_result = llm._generate(check_silence_stop)
+                                        check_response = silent_result.generations[0][0].text.lower()
+                                        print(check_response)
+                                        if check_response == 'yes':
+                                            prompt_silence_stop = f"Tell the user that the silence has stopped. Based on the {message} answer accordingly"
+                                            res_final = await gb.send_response_with_LLM(message,prompt_unknown)
+                                            await websocket.send(res_final)
+                                            silent_flag = False
+                                            break
+                                        else:
+                                            await websocket.send("SHHH...")
+                                except asyncio.TimeoutError:
+                                    remaining_time = timedelta(seconds=countdown_seconds)
+                                    print(f"Time remaining: {remaining_time}", end='\r')
+
+                                # Decrement the countdown time
+                                countdown_seconds -= 1
+
+                            print("Countdown finished!")
+                        else:
+                            print("Invalid time format.")
+
+                    except ValueError:
+                        print("Invalid time format.")
+                else:
+                    print("TIME TO BE SILENT : ",None)
+
+            #prompt_music_question = f"Based on the message:{message} get the name of the song.If its a random request give a song"
+            #res_final = await gb.send_response_with_LLM(message, prompt_music_question)
+            #search_results = ytmusic.search(res_final)
+            #is_paused = False
+            #for result in search_results:
+            #    if result.get('resultType') == 'song':
+            #        videoid = result.get('videoId')
+            #        song_name = result.get('title')
+            #        artists = [artist.get('name') for artist in result.get('artists', []) if artist.get('name') != 'Song']
+            #        album_name = result.get('album', {}).get('name')
+            #        thumbnail_url = result.get('thumbnails', [{}])[0].get('url', 'No thumbnail available')
+            #        print('Song Name:', song_name)
+            #        print('Artist(s):', ', '.join(artists))
+            #        print('Album:', album_name)
+            #        print('Thumbnail URL:', thumbnail_url)
+            #        print()
+            #        break
+            #stream(videoid)
+            #await log_conversation(message, f"Sure ... Playing {artists} - {song_name}")
+            #await websocket.send(f"Sure ... Playing {''.join(artists)} - {song_name}")
+            #song_playing = True
+        print("CURRENT CONVERSATION STATE : ",conversation_state)
+        print("CURRENT SONG : ",song_name)
+        print("Song Playing : ",song_playing)
+    else:
+        repeat_command = [f"check if the user is asking to stop repeating based on the message .Reply with a 'yes' or 'no' message:{message}"]
+        repeat_result = llm._generate(repeat_command)
+        check_response = repeat_result.generations[0][0].text.lower()
+        if check_response == "yes":
+            prompt_repeat = f"Tell the user that you have stopped repeating after the user"
+            res_final = await gb.send_response_with_LLM(message,prompt_repeat)
+            await websocket.send(res_final)
+            repeat_flag = False
+        else:
+            await websocket.send(message)
