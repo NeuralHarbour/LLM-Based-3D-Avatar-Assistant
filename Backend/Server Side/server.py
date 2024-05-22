@@ -59,7 +59,7 @@ async def on_message(websocket):
 
         words  = message.split()
         if language == '[en]' or language == '[te]':
-            if len(words) >=15:
+            if len(words) >=25:
                 await websocket.send("I can't process this message")
             else:
                 await en_module.process_en_message(message, websocket,callback = handle_received_message)
