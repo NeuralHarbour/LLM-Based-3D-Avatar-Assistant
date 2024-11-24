@@ -129,7 +129,7 @@ A virtual waifu / assistant that you can speak to through your mic and it'll spe
 <!-- LICENSE -->
 ## License
 
-Proprietory Software and Hardware
+GPL 3.0
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
