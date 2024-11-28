@@ -28,7 +28,7 @@
 
 
 # Deprecated Branch
-This branch is deprecated and no longer actively maintained. New branch coming soon !!!
+This branch is deprecated and no longer actively maintained. Instead Check out this new branch https://github.com/NeuralHarbour/LLM-Based-3D-Avatar-Assistant/tree/v2.0
 
 
 
