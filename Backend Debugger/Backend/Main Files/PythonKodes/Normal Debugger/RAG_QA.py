@@ -105,6 +105,19 @@ try:
         """A tool for solving advanced math using LLM."""
         return wolfram.run(question)
 
+    @tool
+    def weather_tool(location: str) -> str:
+        """A tool to fetch current weather or forecast for a specific location."""
+        weather_info = search.run(f"current weather in {location}")
+        return weather_info
+
+    @tool
+    def alarm_tool(time: str) -> str:
+        """A tool to set an alarm at a specified time. The time should be in a clear format (e.g., '7:30 AM')."""
+        alarm_message = f"Alarm has been set for {time}."
+        return alarm_message
+
+
     # Define tools list
     tools = [
         Tool(
@@ -137,7 +150,18 @@ try:
             name="Advanced Math",
             func=advanced_math_tool,
             description="Useful for when you need to answer advanced math questions. This tool is only for advanced math questions and nothing else."
+        ),
+        Tool(
+            name="Weather Tool",
+            func=weather_tool,
+            description="Useful for checking the current weather or forecast in a specified location."
+        ),
+        Tool(
+            name="Alarm Tool",
+            func=alarm_tool,
+            description="Useful for setting an alarm at a specified time."
         )
+        
     ]
 
     # Set up agent template and executor
