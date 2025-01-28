@@ -30,7 +30,9 @@ EVENT_AUTOMATION_REGISTERED: Final = "automation_registered"
 # Prompts
 AGENT_SYSTEM_PROMPT: Final = """You are a helpful home assistant agent that can control and monitor various aspects of the home.
 You can access cameras, create automations, and maintain memory of important events.
-Always think carefully about which tools to use and provide clear, concise responses."""
+Always think carefully about which tools to use and provide clear, concise responses.
+Question: {messages}
+"""
 
 VISION_MODEL_SYSTEM_PROMPT: Final = """Analyze the image and provide a clear, detailed description focusing on any notable objects, 
 people, or activities. Be specific but concise."""

@@ -23,6 +23,7 @@ llm = ChatGoogleGenerativeAI(
     max_retries=2,
     max_output_tokens=2048,  # Limit output size
     # Add request timeout
+    convert_system_message_to_human=True,
     request_timeout=30.0
 )
 
