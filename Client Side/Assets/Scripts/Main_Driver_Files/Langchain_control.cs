@@ -8,9 +8,9 @@ public class Langchain_control : MonoBehaviour
     TextManager tm;
     WakeWordController wc;
     private string lastProcessedIntent = "";
-
-    private const string apiKey = "AIzaSyCMqtqqn68ltAl_10WvEkvTSq4YsUJKCv0";
-    private string apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=";
+    public string response;
+    [SerializeField] private string apiKey = "<YOUR API KEY>";
+    private string apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=";
 
     void Start()
     {
@@ -22,7 +22,7 @@ public class Langchain_control : MonoBehaviour
         }
         else
         {
-            Debug.Log("TextManager found successfully");
+            Debug.Log("TextManager found successfully for langchain_control");
         }
     }
 
@@ -51,7 +51,7 @@ public class Langchain_control : MonoBehaviour
 
                 case "general_greet":
 
-                    string response = MenuItem_KODEZ_Class.KODEZ(tm.currentReceivedText);
+                    response = MenuItem_KODEZ_Class.KODEZ(tm.currentReceivedText);
                     if(response != null)
                     {
                         Debug.Log($"Response: {response}");
@@ -347,9 +347,9 @@ public class Langchain_control : MonoBehaviour
     }
     public void animation_identifier(string msg)
     {
-        string prompt = @"You are an AI animation suggestion system. Analyze the message and suggest ONE appropriate animation name based on its emotional context, action, or intent. 
+        string prompt = $@"You are an AI animation suggestion system. Analyze the message and suggest ONE appropriate animation name based on its emotional context, action, or intent. 
                         Guidelines:
-                        1. Respond with ONLY the animation name in lowercase, no extra text
+                        1. Respond with ONLY the animation name in lowercase, no extra text.
                         2. For greetings/emotions, suggest animations like:
                            - wave, bow, nod (for greetings)
                            - jump, dance, celebrate (for joy/excitement)
@@ -365,31 +365,46 @@ public class Langchain_control : MonoBehaviour
                            - pickup, throw, drop
                         4. For unclear messages, suggest 'idle'
 
-                        The message is: """ + msg + @"""";
+                        The message is: {msg}";
 
         StartCoroutine(QueryAPI(prompt, response =>
         {
             if (!string.IsNullOrEmpty(response))
             {
-                try
-                {
-                    JsonData responseData = JsonUtility.FromJson<JsonData>(response);
-                    if (responseData?.candidates != null &&
-                        responseData.candidates.Length > 0 &&
-                        responseData.candidates[0]?.content?.parts != null &&
-                        responseData.candidates[0].content.parts.Length > 0)
-                    {
-                        string animationName = responseData.candidates[0].content.parts[0].text.Trim();
-                        PlayAnimation(animationName);
-                    }
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError($"Error parsing response: {e.Message}");
-                }
+                HandleApiResponse(response);
             }
         }));
     }
+
+    private void HandleApiResponse(string response)
+    {
+        try
+        {
+            // Parse the JSON response
+            ApiResponse apiResponse = JsonUtility.FromJson<ApiResponse>(response);
+
+            // Extract the animation name from the response
+            if (apiResponse?.candidates != null &&
+                apiResponse.candidates.Length > 0 &&
+                apiResponse.candidates[0]?.content?.parts != null &&
+                apiResponse.candidates[0].content.parts.Length > 0)
+            {
+                string animationName = apiResponse.candidates[0].content.parts[0].text.Trim().ToLower();
+                PlayAnimation(animationName);
+            }
+            else
+            {
+                Debug.LogWarning("No valid animation name found in the API response.");
+                PlayAnimation("idle"); // Default to idle if no valid animation is found
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Error parsing API response: {e.Message}");
+            PlayAnimation("idle"); // Default to idle if parsing fails
+        }
+    }
+
 
     private void PlayAnimation(string animationName)
     {
@@ -416,17 +431,24 @@ public class Langchain_control : MonoBehaviour
 
     private IEnumerator QueryAPI(string message, System.Action<string> onResponse)
     {
-        string fullUrl = apiUrl + apiKey;
+        string fullUrl = $"{apiUrl}{apiKey}";
+
+        // Log the full URL and API key
+        Debug.Log($"Request URL: {fullUrl}");
+        Debug.Log($"API Key: {apiKey}");
+
+        // Create the request payload
         RequestData requestData = new RequestData
         {
             contents = new[] {
-                new Content {
-                    parts = new[] { new Part { text = message } }
-                }
+            new Content {
+                parts = new[] { new Part { text = message } }
             }
+        }
         };
 
         string jsonData = JsonUtility.ToJson(requestData);
+        Debug.Log($"Request Payload: {jsonData}");
 
         using (UnityWebRequest webRequest = new UnityWebRequest(fullUrl, "POST"))
         {
@@ -439,11 +461,14 @@ public class Langchain_control : MonoBehaviour
 
             if (webRequest.result == UnityWebRequest.Result.Success)
             {
+                Debug.Log($"API Response: {webRequest.downloadHandler.text}");
                 onResponse?.Invoke(webRequest.downloadHandler.text);
             }
             else
             {
                 Debug.LogError($"API Request Failed: {webRequest.error}");
+                Debug.LogError($"Response Code: {webRequest.responseCode}");
+                Debug.LogError($"Response Text: {webRequest.downloadHandler.text}");
                 onResponse?.Invoke(null);
             }
         }
@@ -457,7 +482,19 @@ public class Langchain_control : MonoBehaviour
     }
 
     [System.Serializable]
-    private class JsonData
+    private class Content
+    {
+        public Part[] parts;
+    }
+
+    [System.Serializable]
+    private class Part
+    {
+        public string text;
+    }
+
+    [System.Serializable]
+    private class ApiResponse
     {
         public Candidate[] candidates;
     }
@@ -466,18 +503,5 @@ public class Langchain_control : MonoBehaviour
     private class Candidate
     {
         public Content content;
-    }
-
-    [System.Serializable]
-    private class Content
-    {
-        public Part[] parts;
-        public string role;
-    }
-
-    [System.Serializable]
-    private class Part
-    {
-        public string text;
     }
 }

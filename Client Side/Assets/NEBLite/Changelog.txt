@@ -1,0 +1,21 @@
+
+WHAT'S NEW IN NEBLite VERSION 1.2.2 - (2024/01/25)
+- Nothing much. Just a minor rename from NEBToolUtilities to NEBLiteUtilities.
+---------------------------------------------------------------------------------------------------
+
+NEBLite VERSION 1.2.1
+- Added new tool: Blendshape Creator
+  This tool allows you to create blendshapes from slight variation of two models.
+  There is also the Pro version in NEBPro that allows you to copy from multiple models at once.
+  Tutorial on how to use this is available at https://www.youtube.com/@ReForgeMode
+
+- Blendshape Transfer Advanced Mode
+  By enabling advanced mode, you will be able to transfer blendshapes directly from SkinnedMeshRenderers.
+  You can directly choose which body part you wanna transfer to: Face, Body, or Hair.
+
+- Experimental: Colorful Debugger
+  Blendshape Creator and Transfer will highlight the problematic item that you need to pay attention to.
+  Let me know how do you feel about this. If succesful, this will be applied to all other tool.
+
+- Minor Recode: Blendshape Organizer has been recoded to be more efficient.
+---------------------------------------------------------------------------------------------------

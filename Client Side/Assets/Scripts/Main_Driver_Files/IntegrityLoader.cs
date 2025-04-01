@@ -63,9 +63,10 @@ public class Integrity_Loader : MonoBehaviour
             downloadProgressText.gameObject.SetActive(false);
             downloadText.gameObject.SetActive(false);
 
-            StartCoroutine(CheckInternetAndLoadAssets());
+            StartCoroutine(ConnectToServer());
         }
     }
+
 
     IEnumerator FadeMusicOut()
     {
@@ -86,6 +87,16 @@ public class Integrity_Loader : MonoBehaviour
         musicSource.volume = startVolume;
     }
 
+    IEnumerator ConnectToServer()
+    {
+        yield return new WaitForSeconds(3f);
+        CircleImg.fillAmount = 0.03f;
+        txtProgress.text = "5";
+        LoadText.text = "Connecting to Server";
+
+        yield return new WaitForSeconds(5f);
+        yield return StartCoroutine(CheckInternetAndLoadAssets());
+    }
     IEnumerator CheckInternetAndLoadAssets()
     {
         yield return new WaitForSeconds(3f);
