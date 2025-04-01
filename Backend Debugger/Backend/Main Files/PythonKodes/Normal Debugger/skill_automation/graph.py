@@ -42,6 +42,13 @@ import os
 import sys
 import importlib.util
 from dotenv import load_dotenv
+from langchain_core.messages import (
+    AIMessage,
+    BaseMessage,
+    HumanMessage,
+    SystemMessage,
+    ToolMessage,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -74,55 +81,9 @@ class State(MessagesState):
     """Extend the MessagesState to include a summary key."""
 
     summary: str
+    devices: dict 
 
-async def _call_model(
-        state: State, config: RunnableConfig, *, store: BaseStore
-    ) -> dict[str, list[BaseMessage]]:
-    """Coroutine to call the model."""
-    model = config["configurable"]["chat_model"]
-    prompt = config["configurable"]["prompt"]
-    user_id = config["configurable"]["user_id"]
-
-    # Initialize empty memories message
-    mems_message = ""
-    
-    # Only attempt to retrieve memories if store is available
-    if store is not None:
-        try:
-            msg = state["messages"][-1]
-            query_prompt = EMBEDDING_MODEL_PROMPT_TEMPLATE.format(
-                query=msg.content
-            ) if isinstance(msg, HumanMessage) else None
-            
-            mems = await store.asearch(
-                (user_id, "memories"),
-                query=query_prompt,
-                limit=10
-            )
-            formatted_mems = "\n".join(f"[{mem.key}]: {mem.value}" for mem in mems)
-            mems_message = f"\n<memories>\n{formatted_mems}\n</memories>" if formatted_mems else ""
-        except Exception as e:
-            LOGGER.warning("Failed to retrieve memories: %s", str(e))
-
-    summary = state.get("summary", "")
-    summary_message = f"\nSummary of conversation earlier: {summary}" if summary else ""
-
-    # For Gemini, convert system message to a human message with the context
-    if "gemini" in str(model).lower():
-        system_content = prompt + mems_message + summary_message
-        messages = [HumanMessage(content=f"Context: {system_content}")] + state["messages"]
-    else:
-        messages = [SystemMessage(
-            content=(prompt + mems_message + summary_message)
-        )] + state["messages"]
-
-    LOGGER.debug("Model call messages: %s", messages)
-    LOGGER.debug("Model call messages length: %s", len(messages))
-
-    response = await model.ainvoke(messages)
-    return {"messages": response}
-
-async def _summarize_and_trim(
+def _summarize_and_trim(
         state: State, config: RunnableConfig, *, store: BaseStore
     ) -> dict[str, list[AnyMessage]]:
     """Coroutine to summarize and trim message history."""
@@ -139,30 +100,10 @@ async def _summarize_and_trim(
         [HumanMessage(content=summary_message)]
     )
 
-    model = config["configurable"]["vlm_model"]
-    options = config["configurable"]["options"]
-    model_with_config = model.with_config(
-        config={
-            "model": options.get(
-                CONF_VLM,
-                RECOMMENDED_VLM,
-            ),
-            "temperature": options.get(
-                CONF_SUMMARIZATION_MODEL_TEMPERATURE,
-                RECOMMENDED_SUMMARIZATION_MODEL_TEMPERATURE,
-            ),
-            "top_p": options.get(
-                CONF_SUMMARIZATION_MODEL_TOP_P,
-                RECOMMENDED_SUMMARIZATION_MODEL_TOP_P,
-            ),
-            "num_predict": VLM_NUM_PREDICT,
-        }
-    )
+    model = base_data.llm
 
     LOGGER.debug("Summary messages: %s", messages)
-    response = await model_with_config.ainvoke(messages)
-
-    # Trim message history to manage context window length.
+    response = model.invoke(messages)
     trimmed_messages = trim_messages(
         messages=state["messages"],
         token_counter=len,
@@ -177,97 +118,62 @@ async def _summarize_and_trim(
 
     return {"summary": response.content, "messages": remove_messages}
 
-async def _call_tools(
-        state: State, config: RunnableConfig, *, store: BaseStore
-    ) -> dict[str, list[ToolMessage]]:
-    """Coroutine to call Home Assistant or langchain LLM tools."""
-    # Tool calls will be the last message in state.
-    tool_calls = state["messages"][-1].tool_calls
 
-    langchain_tools = config["configurable"]["langchain_tools"]
-    ha_llm_api = config["configurable"]["ha_llm_api"]
+def get_dummy_devices():
+    """Return a dictionary of dummy devices with their details."""
+    return {
+        "front door camera": {"id": "cam001", "type": "camera", "location": "front"},
+        "backyard camera": {"id": "cam002", "type": "camera", "location": "backyard"},
+        "garage camera": {"id": "cam003", "type": "camera", "location": "garage"},
+        # Add more devices as needed
+    }
 
-    tool_responses: list[ToolMessage] = []
-    for tool_call in tool_calls:
-        tool_name = tool_call["name"]
-        tool_args = tool_call["args"]
+def _should_continue(state: State) -> Literal["tools", "validate_device", "end"]:
+    """
+    Determine the next step in the conversation flow.
+    """
+    last_message = state["messages"][-1]
+    
+    # Check for tool calls first
+    if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
+        return "tools"
+    
+    # Check for device-related keywords
+    message_content = last_message.content.lower()
+    if "camera" in message_content:
+        return "validate_device"
+        
+    return "end"
 
-        LOGGER.debug(
-            "Tool call: %s(%s)", tool_name, tool_args
+def _validate_device_request(state: State) -> dict:
+    """
+    Validate device mentions and return appropriate response state.
+    """
+    last_message = state["messages"][-1]
+    message_content = last_message.content.lower()
+    devices = get_dummy_devices()
+    
+    # Check for specific device mentions
+    mentioned_devices = [
+        (name, details) for name, details in devices.items() 
+        if name.lower() in message_content
+    ]
+    
+    if not mentioned_devices and "camera" in message_content:
+        # Only "camera" was mentioned, list available devices
+        available_devices = list(devices.keys())
+        response = (
+            f"I see you mentioned a camera. Here are the available cameras:\n"
+            f"{', '.join(available_devices)}.\n"
+            f"Please specify which camera you'd like to use."
         )
-
-        def _handle_tool_error(err:str, name:str, tid:str) -> ToolMessage:
-            return ToolMessage(
-                content=TOOL_CALL_ERROR_TEMPLATE.format(error=err),
-                name=name,
-                tool_call_id=tid,
-                status="error",
-            )
-
-        # A langchain tool was called.
-        if tool_name in langchain_tools:
-            lc_tool = langchain_tools[tool_name.lower()]
-
-            # Provide hidden args to tool at runtime.
-            tool_call_copy = copy.deepcopy(tool_call)
-            tool_call_copy["args"].update(
-                {
-                    "store": store,
-                    "config": config,
-                }
-            )
-
-            try:
-                tool_response = await lc_tool.ainvoke(tool_call_copy)
-            except (Exception, ValidationError) as e:
-                tool_response = _handle_tool_error(repr(e), tool_name, tool_call["id"])
-        # A Home Assistant tool was called.
-        else:
-            tool_input = base_data.llm.ToolInput(
-                tool_name=tool_name,
-                tool_args=tool_args,
-            )
-
-            try:
-                response = await ha_llm_api.async_call_tool(tool_input)
-
-                tool_response = ToolMessage(
-                    content=json.dumps(response),
-                    tool_call_id=tool_call["id"],
-                    name=tool_name,
-                )
-            except Exception as e:
-                tool_response = _handle_tool_error(repr(e), tool_name, tool_call["id"])
-
-        LOGGER.debug("Tool response: %s", tool_response)
-        tool_responses.append(tool_response)
-    return {"messages": tool_responses}
-
-def _should_continue(
-        state: State
-    ) -> Literal["action", "summarize_and_trim", "__end__"]:
-    """Return the next node in graph to execute."""
-    messages = state["messages"]
-
-    if messages[-1].tool_calls:
-        return "action"
-
-    if len(messages) > CONTEXT_SUMMARIZE_THRESHOLD:
-        LOGGER.debug("Summarizing conversation")
-        return "summarize_and_trim"
-
-    return "__end__"
-
-# Define a new graph
-workflow = StateGraph(State)
-
-# Define nodes.
-workflow.add_node("agent", _call_model)
-workflow.add_node("action", _call_tools)
-workflow.add_node("summarize_and_trim", _summarize_and_trim)
-
-# Define edges.
-workflow.add_edge(START, "agent")
-workflow.add_conditional_edges("agent", _should_continue)
-workflow.add_edge("action", "agent")
-workflow.add_edge("summarize_and_trim", END)
+        return {"messages": [AIMessage(content=response)]}
+    
+    elif mentioned_devices:
+        # Specific device found, store it and continue to automation
+        device_name, device_details = mentioned_devices[0]
+        state["current_device"] = device_details
+        return {"messages": state["messages"]}
+    
+    # No device-related content, continue normal flow
+    return {"messages": state["messages"]}

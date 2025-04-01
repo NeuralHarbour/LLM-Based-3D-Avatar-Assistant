@@ -7,100 +7,75 @@ from pathlib import Path
 
 from langchain.agents import Tool
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_core.runnables import RunnableConfig
+from langchain_core.runnables import RunnableConfig,Runnable,RunnableLambda
+from langchain_core.messages import ToolMessage
+from langgraph.prebuilt import ToolNode
 from ulid import ULID
 
-from .graph import workflow, State
-from .const import (
-    AGENT_SYSTEM_PROMPT,
-    DEFAULT_MEMORY_KEY,
-)
+from typing import Annotated
+from typing_extensions import TypedDict
+from langgraph.graph.message import AnyMessage, add_messages
 
 LOGGER = logging.getLogger(__name__)
 
-class HomeAgent:
-    """Home Assistant Generative Agent implementation."""
-
-    def __init__(
-        self,
-        chat_model: Any,
-        vlm_model: Any,
-        ha_llm_api: Any,
-        user_id: str,
-        options: dict[str, Any],
-    ) -> None:
-        """Initialize the agent."""
-        self.chat_model = chat_model
-        self.vlm_model = vlm_model
-        self.ha_llm_api = ha_llm_api
-        self.user_id = user_id
-        self.options = options
-
-        # Initialize tools
-        from .tools import upsert_memory, add_automation
-        
-        self.tools = [
-            Tool(
-                func=upsert_memory,
-                name="upsert_memory",
-                description="Store or update a memory in the database"
-            ),
-            Tool(
-                func=add_automation,
-                name="add_automation",
-                description="Add an automation to Home Assistant"
-            ),
+def handle_tool_error(state) -> dict:
+    """
+    Function to handle errors that occur during tool execution.
+    
+    Args:
+        state (dict): The current state of the AI agent, which includes messages and tool call details.
+    
+    Returns:
+        dict: A dictionary containing error messages for each tool that encountered an issue.
+    """
+    error = state.get("error")
+    tool_calls = state["messages"][-1].tool_calls
+    
+    return {
+        "messages": [
+            ToolMessage(
+                content=f"Error: {repr(error)}\n please fix your mistakes.",
+                tool_call_id=tc["id"],
+            )
+            for tc in tool_calls
         ]
+    }
 
-        # Configure the workflow
-        self.config = RunnableConfig(
-            configurable={
-                "chat_model": self.chat_model,
-                "vlm_model": self.vlm_model,
-                "ha_llm_api": self.ha_llm_api,
-                "user_id": self.user_id,
-                "options": self.options,
-                "langchain_tools": {tool.name.lower(): tool for tool in self.tools},
-                "prompt": AGENT_SYSTEM_PROMPT,
-            }
-        )
+def create_tool_node_with_fallback(tools: list) -> dict:
+    """
+    Function to create a tool node with fallback error handling.
+    
+    Args:
+        tools (list): A list of tools to be included in the node.
+    
+    Returns:
+        dict: A tool node that uses fallback behavior in case of errors.
+    """
+    return ToolNode(tools).with_fallbacks(
+        [RunnableLambda(handle_tool_error)],  # Use a lambda function to wrap the error handler
+        exception_key="error"  # Specify that this fallback is for handling errors
+    )
 
-        # Initialize the graph with store
-        self.graph = workflow.compile()
+class State(TypedDict):
+    messages: Annotated[list[AnyMessage], add_messages]
 
-    async def ainvoke(
-        self,
-        message: str,
-        *,
-        conversation_id: Optional[str] = None,
-    ) -> str:
-        """Invoke the agent asynchronously."""
-        try:
-            # Create initial state
-            state = State(
-                messages=[HumanMessage(content=message)],
-                summary=""
-            )
+class HomeAgent:
+    def __init__(self, runnable: Runnable):
+        self.runnable = runnable
 
-            # Run the graph
-            result = await self.graph.ainvoke(
-                state,
-                config=self.config,
-            )
+    def __call__(self, state: State):
+        while True:
+            result = self.runnable.invoke(state)
+            
+            if not result.tool_calls and (
+                not result.content
+                or isinstance(result.content, list)
+                and not result.content[0].get("text")
+            ):
+                # Add a message to request a valid response
+                messages = state["messages"] + [("user", "Respond with a real output.")]
+                state = {**state, "messages": messages}
+            else:
+                break
 
-            # Extract the final response
-            final_message = result["messages"][-1]
-            return final_message.content
-
-        except Exception as e:
-            LOGGER.error("Error in agent invocation: %s", e, exc_info=True)
-            raise
-
-    async def astart(self) -> None:
-        """Start the agent."""
-        pass
-        
-
-    async def astop(self) -> None:
-        """Stop the agent."""
-        pass
+        return {"messages": result}

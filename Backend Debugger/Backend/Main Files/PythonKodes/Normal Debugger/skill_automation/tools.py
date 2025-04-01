@@ -1,105 +1,128 @@
-from typing import Annotated, Any
+from typing import Annotated, Any, Optional
 from pathlib import Path
 from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import InjectedStore
-from langchain_core.tools import InjectedToolArg
+from langchain_core.tools import Tool, StructuredTool, InjectedToolArg
 from langgraph.store.base import BaseStore
 from ulid import ULID
-import yaml
+import yaml  # Using built-in yaml module
 import aiofiles
 from collections.abc import Mapping
-from langchain_core.tools import tool
+import json
+from pydantic import BaseModel
 
-# Constants
-BLUEPRINT_NAME = "camera_analysis_blueprint"
-EVENT_AUTOMATION_REGISTERED = "automation_registered"
-DEFAULT_AUTOMATION_PATH = "automations.yaml"
+class AddAutomationArgs(BaseModel):
+    time_pattern: str
+    message: str
+    automation_yaml: Optional[str] = None
 
-@tool(parse_docstring=False)
-async def upsert_memory(
-    content: str,
-    context: str,
-    *,
-    memory_id: ULID | None = None,
-    config: Annotated[RunnableConfig, InjectedToolArg],
-    store: Annotated[BaseStore, InjectedStore],
-) -> str:
-    """
-    Upsert a memory in the database.
-    
-    Args:
-        content: The main content of the memory
-        context: Additional context for the memory
-        memory_id: ONLY PROVIDE IF UPDATING AN EXISTING MEMORY
-    """
-    mem_id = memory_id or ULID()
-    await store.aput(
-        namespace=(config["configurable"]["user_id"], "memories"),
-        key=str(mem_id),
-        value={"content": content, "context": context},
-    )
-    return f"Stored memory {mem_id}"
-
-@tool(parse_docstring=False)
-async def add_automation(
+# Add automation function
+def add_automation(
+    time_pattern: str,
+    message: str,
     automation_yaml: str | None = None,
-    time_pattern: str | None = None,
-    message: str | None = None,
     *,
     config: Annotated[RunnableConfig, InjectedToolArg]
 ) -> str:
-    """
-    Add an automation to Home Assistant.
-    """
-    hass = config["configurable"]["hass"]
-    config_dir = Path(hass.config.config_dir)
-    automation_path = config_dir / DEFAULT_AUTOMATION_PATH
+    '''
+    Tool to create and add automations
+    '''
+    try:
+        config_dir = Path("config")
+        config_dir.mkdir(parents=True, exist_ok=True)
+        automation_path = config_dir / "automation.yaml"
 
-    if time_pattern is not None and message is not None:
         automation_data = {
-            "alias": message,
-            "description": f"Created with blueprint {BLUEPRINT_NAME}.",
-            "use_blueprint": {
-                "path": BLUEPRINT_NAME,
-                "input": {
-                    "time_pattern": time_pattern,
-                    "message": message,
-                }
-            }
+            "id": str(ULID()),
+            "alias": f"Camera Check {time_pattern}",
+            "description": "Automated camera check",
+            "trigger": {
+                "platform": "time_pattern",
+                "pattern": time_pattern,
+            },
+            "action": {
+                "service": "camera.snapshot",
+                "data": {"message": message},
+            },
         }
-        automation_yaml = yaml.dump(automation_data)
 
-    automation_parsed = yaml.safe_load(automation_yaml)
-    ha_automation_config = {"id": str(ULID())}
+        if automation_yaml:
+            try:
+                custom_config = yaml.safe_load(automation_yaml)
+                automation_data.update(custom_config)
+            except yaml.YAMLError as e:
+                return f"Error parsing custom YAML: {str(e)}"
 
-    if isinstance(automation_parsed, list):
-        ha_automation_config.update(automation_parsed[0])
-    elif isinstance(automation_parsed, Mapping):
-        ha_automation_config.update(automation_parsed)
-    else:
-        raise ValueError("Invalid automation configuration format")
+        existing_automations = []
+        if automation_path.exists():
+            try:
+                with open(automation_path, 'r') as f:
+                    content = f.read()
+                    if content.strip():
+                        existing_automations = yaml.safe_load(content) or []
+                        if not isinstance(existing_automations, list):
+                            existing_automations = [existing_automations]
+            except yaml.YAMLError as e:
+                return f"Error reading existing automations: {str(e)}"
 
-    config_dir.mkdir(parents=True, exist_ok=True)
-    existing_automations = []
-    
-    if automation_path.exists():
-        async with aiofiles.open(automation_path, encoding="utf-8") as f:
-            content = await f.read()
-            if content.strip():
-                existing_automations = yaml.safe_load(content) or []
-                if not isinstance(existing_automations, list):
-                    existing_automations = [existing_automations] if existing_automations else []
+        existing_automations.append(automation_data)
 
-    existing_automations.append(ha_automation_config)
-    async with aiofiles.open(automation_path, "w", encoding="utf-8") as f:
-        await f.write(yaml.dump(existing_automations, allow_unicode=True, sort_keys=False))
+        with open(automation_path, 'w') as f:
+            yaml.dump(existing_automations, f, allow_unicode=True, sort_keys=False, default_flow_style=False)
+        return f"Successfully added camera check automation (ID: {automation_data['id']}) to run {time_pattern}"
+    except Exception as e:
+        return f"Error creating automation: {str(e)}"
 
-    hass.bus.async_fire(
-        EVENT_AUTOMATION_REGISTERED,
-        {
-            "automation_config": ha_automation_config,
-            "raw_config": yaml.dump([ha_automation_config], allow_unicode=True, sort_keys=False),
-        },
-    )
+# Structured tool for add_automation
+add_automation_tool = StructuredTool.from_function(
+    func=add_automation,
+    name="add_automation",
+    description="Add an automation to check cameras periodically",
+    args_schema=AddAutomationArgs
+)
 
-    return f"Added automation {ha_automation_config['id']}"
+# Upsert memories function
+async def upsert_memories_from_log(
+    *,
+    config: Annotated[RunnableConfig, InjectedToolArg],
+    store: Annotated[BaseStore, InjectedStore],
+) -> str:
+    '''
+    Tool for memory upsertion
+    '''
+    try:
+        with open('conversation_log.json', 'r') as file:
+            conversation = json.load(file)
+
+        messages = conversation.get("messages", [])
+        upserted_count = 0
+
+        for i in range(0, len(messages), 2):
+            if i + 1 < len(messages):
+                human_message = messages[i]
+                ai_message = messages[i + 1]
+
+                if human_message["sender"] == "human" and ai_message["sender"] == "ai":
+                    mem_id = ULID()
+                    await store.aput(
+                        namespace=(config["configurable"]["user_id"], "memories"),
+                        key=str(mem_id),
+                        value={
+                            "content": human_message["body"],
+                            "context": ai_message["body"],
+                        },
+                    )
+                    upserted_count += 1
+
+        return f"Successfully upserted {upserted_count} memories from conversation log"
+    except FileNotFoundError:
+        return "Conversation log file not found"
+    except json.JSONDecodeError:
+        return "Error reading conversation log file"
+
+# Tool for upsert_memories_from_log
+upsert_memories_tool = Tool.from_function(
+    func=upsert_memories_from_log,
+    name="upsert_memories_from_log",
+    description="Read the conversation log JSON file and upsert all messages as memories"
+)
