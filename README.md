@@ -118,20 +118,26 @@ https://ieeexplore.ieee.org/document/10576146
 <br>
 <img src="Images/Step4.png" alt="Step4" width="600" height="280">
 <br>
-5. Run the STT service using: <strong>python STT.py</strong>
+5. Also add the API Key in the LANGCHAIN_CONTROLLER as well
 <br>
 <br>
-6. Launch the app by clicking on the play button
+6. Run the STT service using: <strong>python STT.py</strong>
 <br>
 <br>
-7. Wait for the application to download the required models on the first start
+7. Launch the app by clicking on the play button
 <br>
 <br>
-8. Say 'Start' to activate or 'Stop' to deactivate works like an OS
+8. Wait for the application to download the required models on the first start
+<br>
+<br>
+9. Say 'Start' to activate or 'Stop' to deactivate works like an OS
 <br>
 <br>
 <img src="Images/Output.png" alt="output" width="280" height="500">
 <br>
+
+
+NOTE - IN THE FIRST START IT WILL CAUSE SOME LAG IE IT GETS STUCK AT 'CHECKING FOR UPDATES' THAT'S TOTALLY NORMAL AS IT'S LOADING THE INTENT CLASSIFIER MODEL
 
 Compiled EXE version coming soon !!!
 
