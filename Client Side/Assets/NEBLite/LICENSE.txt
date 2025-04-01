@@ -1,0 +1,38 @@
+Copyright (c) 2024 ReForge Mode
+Store Page: https://ko-fi.com/s/ad2b08fa67
+
+END-USER LICENSE AGREEMENT (EULA)
+
+SUMMARY: Just don't distribute it freely to other people. NEBLite is free, just tell them to download straight from my Ko-Fi page.
+
+
+
+IMPORTANT: PLEASE READ THIS AGREEMENT CAREFULLY BEFORE USING THE SOFTWARE.
+
+1. GRANT OF LICENSE
+   Subject to the terms and conditions of this End-User License Agreement (EULA), ReForge Mode (hereinafter referred to as "Licensor") hereby grants you (hereinafter referred to as "Licensee") a non-exclusive, non-transferable license to use the software (NEBPro) in accordance with the terms of this EULA.
+
+2. RESTRICTIONS
+Licensee shall not, without the prior written consent of Licensor:
+   a. Distribute, sublicense, lease, rent, or otherwise transfer the Software or any portion thereof to any third party.
+   b. Share or disclose access credentials or any means of enabling the use of the Software to unauthorized users or unpaid user.
+
+3. OWNERSHIP AND INTELLECTUAL PROPERTY
+   Licensee acknowledges and agrees that Licensor retains all ownership and intellectual property rights in and to the Software, including any improvements, modifications, or enhancements made by Licensee.
+
+4. TERMINATION
+   This EULA is effective until terminated. Licensor may terminate this license at any time if Licensee breaches any of the terms and conditions. Upon termination, Licensee shall cease all use of the Software and destroy all copies in its possession.
+
+5. USER RESPONSIBILITY
+   Licensee is free to use the Software for personal or business purposes, provided that such use complies with the terms of this EULA.
+
+6. DISCLAIMER OF WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS," WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR IMPLIED.
+
+7. LIMITATION OF LIABILITY
+   IN NO EVENT SHALL LICENSOR BE LIABLE FOR ANY INCIDENTAL, INDIRECT, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
+
+
+The above copyright notice and this permission notice shall be included in all
+copies of the Software.
+

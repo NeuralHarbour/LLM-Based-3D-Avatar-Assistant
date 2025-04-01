@@ -96,7 +96,7 @@ public class TextManager : MonoBehaviour
                         else
                         {
                             string classifiedIntent = MenuItem_KODEZ_Class.Intent_Classifier(currentReceivedText);
-                            Debug.Log($"Classified Intent: {classifiedIntent}"); // Debug log to verify intent
+                            Debug.Log($"Classified Intent: {classifiedIntent}");
                             intent = classifiedIntent;
                         }
                     }
