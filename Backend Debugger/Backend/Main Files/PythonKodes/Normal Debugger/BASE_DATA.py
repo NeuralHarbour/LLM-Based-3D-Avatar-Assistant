@@ -17,13 +17,12 @@ if not google_api_key:
 
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-pro", 
+    model="gemini-2.0-flash", 
     google_api_key=google_api_key,
     temperature=0.3,
     max_retries=2,
-    max_output_tokens=2048,  # Limit output size
-    # Add request timeout
-    request_timeout=30.0
+    max_output_tokens=2048,
+    timeout=30
 )
 
 def log_conversation(message, response):
