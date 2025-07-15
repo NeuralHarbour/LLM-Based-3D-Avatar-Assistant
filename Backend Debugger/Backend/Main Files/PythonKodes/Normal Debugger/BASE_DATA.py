@@ -11,6 +11,7 @@ memory = ConversationBufferMemory(return_messages=True, chat_memory=history, mem
 
 load_dotenv(dotenv_path="./API_KEYS.env")
 google_api_key = os.environ.get("GOOGLE_API_KEY")
+tavily_api_key = os.environ.get("TAVILY_API_KEY")
 
 if not google_api_key:
     raise ValueError("GOOGLE_API_KEY not found in the .env file. Please ensure it's set.")
@@ -86,3 +87,5 @@ def load_memory_from_json(file_path):
         print(f"Error decoding JSON file at {file_path}. Starting fresh.")
 
     return history
+
+__all__ = ["llm", "memory", "log_conversation", "load_memory_from_json", "tavily_api_key"]
