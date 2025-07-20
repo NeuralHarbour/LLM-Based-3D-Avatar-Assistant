@@ -5,6 +5,12 @@ import json
 from pathlib import Path
 from dotenv import load_dotenv
 import os
+from typing_extensions import TypedDict
+from typing import Annotated,Literal
+from langgraph.graph.message import add_messages
+from typing_extensions import TypedDict
+from typing import List, Optional, Dict, Any
+
 
 history = ChatMessageHistory()
 memory = ConversationBufferMemory(return_messages=True, chat_memory=history, memory_key="chat_history")
@@ -12,10 +18,13 @@ memory = ConversationBufferMemory(return_messages=True, chat_memory=history, mem
 load_dotenv(dotenv_path="./API_KEYS.env")
 google_api_key = os.environ.get("GOOGLE_API_KEY")
 tavily_api_key = os.environ.get("TAVILY_API_KEY")
+weather_api_key = os.environ.get("WEATHER_API_KEY")
 
 if not google_api_key:
     raise ValueError("GOOGLE_API_KEY not found in the .env file. Please ensure it's set.")
 
+class State(TypedDict):
+    messages: Annotated[list, add_messages]
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.0-flash", 
@@ -88,4 +97,4 @@ def load_memory_from_json(file_path):
 
     return history
 
-__all__ = ["llm", "memory", "log_conversation", "load_memory_from_json", "tavily_api_key"]
+__all__ = ["llm", "memory", "log_conversation", "load_memory_from_json", "tavily_api_key","State"]
